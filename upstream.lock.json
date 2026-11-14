@@ -1,10 +1,10 @@
 {
   "horizon": {
     "repository": "https://github.com/horizon-rust/horizon",
-    "revision": "f4d8d62c31ec2b08046faded7bef1b476783f319",
+    "revision": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
     "game": "26.3",
-    "hooks_available": 645,
-    "source": "main observed 2026-11-14; not a verified Nightly release"
+    "hooks_available": 415,
+    "source": "Exact running Horizon commit reported by user; original prototype target was f4d8d62c31ec2b08046faded7bef1b476783f319"
   },
   "mixins": {
     "repository": "https://github.com/horizon-rust/horizon-mixins",
@@ -19,4 +19,3 @@
     "revision": "795369c5a03c7cf39307398a432a5d644698e1df"
   }
 }
-

@@ -46,7 +46,8 @@ def validate(root=ROOT, sources=None):
     cm = tomllib.loads((content / 'horizon-mod.toml').read_text())
     require(re.fullmatch(r'[a-z0-9_]{1,64}', cm['id']), 'invalid mod id')
     require(cm['id'] == manifest['mod']['id'] == cargo['package']['name'] == 'powercraft2', 'id mismatch')
-    require(cm['version'] == manifest['mod']['version'] == cargo['package']['version'], 'version mismatch')
+    require(manifest['mod']['version'] == cargo['package']['version'], 'native version mismatch')
+    require(cm['version'] == '0.1.0', 'unexpected content version; native-only hotfix keeps content unchanged')
     require(cm['side'] == 'both' and cm['api'] == '0.2', 'content must target both sides/API 0.2')
     require(cm['capabilities'] == ['registries'], 'unexpected capabilities')
     for key in ('horizon_revision', 'horizon_mixins_revision'):
@@ -63,7 +64,7 @@ def validate(root=ROOT, sources=None):
     evidence = read_json(root / 'docs/API_EVIDENCE.json')
     require(evidence['horizon_revision'] == revision, 'stale API evidence')
     available = {h['name']: h for h in evidence['hooks']}
-    expected = {'entity_tick_listened', 'entity_tick_post', 'state_for_placement'}
+    expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement'}
     require({i['hook'] for i in manifest['injection']} == expected, 'unexpected hooks')
     require(len(manifest['injection']) == len(expected), 'duplicate hook')
     for injection in manifest['injection']:

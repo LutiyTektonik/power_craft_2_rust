@@ -1,0 +1,52 @@
+{
+  "horizon_revision": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
+  "mixins_revision": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+  "reported_by_user": true,
+  "files": [
+    {
+      "path": "crates/horizon-client/src/entities.rs",
+      "git_blob": "defdf2bfd1a49d135b9e833698b30fdb703fceb1",
+      "sha256": "adc93c608a76dea972366c28419a9095e9dbe9b03ec516e56a46e653710ad819"
+    },
+    {
+      "path": "crates/horizon-client/src/game/remote.rs",
+      "git_blob": "1f15b46415eb1ddf3ef174ac15fe260237949aaa",
+      "sha256": "bdfeddcd10445dc1eb1ac47aa439ee6c02a9478bb12600017ecfefd53d69298b"
+    },
+    {
+      "path": "crates/horizon-client/src/game/item_entities.rs",
+      "git_blob": "97027e1ea0daf257fc32adc081e9dd807535ca44",
+      "sha256": "6b9d62407cd10204c8cc4b989b901d0946d89aa6faf462080a4ba1c250a89539"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_entity_motion.rs",
+      "git_blob": "6dc713a9b1d079ca8f56d1c5f4731ac7ed7fdd7f",
+      "sha256": "28e0ad9cf1c9b21e743d28dd67344ae14994ac57d94211dcc33a39423f3d89cf"
+    },
+    {
+      "path": "crates/horizon-client/src/game/lan.rs",
+      "git_blob": "ce29dabc1c18b03b71fda1cd094ac94eccfcf1a6",
+      "sha256": "917f729704c1553a926bcbcfeed0debbd7399abef453603c6b55a9129c6943cb"
+    },
+    {
+      "path": "crates/horizon-client/src/lan/entity.rs",
+      "git_blob": "0c93e0d0adeb056f6473cdcec47184274906855f",
+      "sha256": "f538f7a08b2a22cf0ecceac7bd3a3cb757d15ef2e803ce446043a0f098325969"
+    },
+    {
+      "path": "crates/horizon-client/src/lan/tracking.rs",
+      "git_blob": "f39031e256fda5f5f3c955de2c251142881be24b",
+      "sha256": "75e92ada14d4aa6225c4201b1c968c3293eaf37402f10bc936adad268af46780"
+    },
+    {
+      "path": "crates/horizon-client/src/game.rs",
+      "git_blob": "a95d377637c395fe94cd6c72a0f8616f234aca6e",
+      "sha256": "ad235ca7b9fb4170d246b9f1f5dc5ed8608168b64d57ff0040d0111a686ce81d"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_hooks.rs",
+      "git_blob": "73ad42345c51a062597aca3479fa86b85770613b",
+      "sha256": "1edb8ccc33f7b046428176755c3ffa59ad6184a1d044b45dabf9d865e5fb7012"
+    }
+  ]
+}

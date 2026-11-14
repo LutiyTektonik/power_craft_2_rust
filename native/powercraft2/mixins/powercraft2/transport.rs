@@ -4,6 +4,8 @@
 pub const MOD_ID: &str = "powercraft2";
 pub const CONVEYOR: &str = "powercraft2:conveyor";
 pub const BELT_HEIGHT: f64 = 0.25;
+pub const DEFAULT_SPEED: f64 = 0.1;
+pub const DEFAULT_CENTERING: f64 = 0.04;
 const CONTACT_EPSILON: f64 = 1.0 / 64.0;
 const WORLD_BORDER: f64 = 30_000_000.0;
 
@@ -92,8 +94,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            speed: 0.1,
-            centering: 0.04,
+            speed: DEFAULT_SPEED,
+            centering: DEFAULT_CENTERING,
         }
     }
 }
@@ -111,6 +113,17 @@ impl Config {
         }
         Ok(Self { speed, centering })
     }
+}
+
+pub fn next_support_block(position: [f64; 3], velocity: [f64; 3]) -> Result<[i32; 3], Error> {
+    if !velocity.iter().all(|v| v.is_finite()) {
+        return Err(Error::InvalidEntity);
+    }
+    support_block([
+        position[0] + velocity[0],
+        position[1],
+        position[2] + velocity[2],
+    ])
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -149,10 +162,7 @@ pub fn velocity_for_tick(
         return Err(Error::InvalidEntity);
     }
     let surface = f64::from(block[1]) + BELT_HEIGHT;
-    if sampled != block
-        || !item.on_ground
-        || (item.position[1] - surface).abs() > CONTACT_EPSILON
-    {
+    if sampled != block || !item.on_ground || (item.position[1] - surface).abs() > CONTACT_EPSILON {
         return Err(Error::NotOnSurface);
     }
     let [dx, _, dz] = direction.vector();
@@ -283,7 +293,12 @@ mod tests {
     fn foreign_support_and_wrong_surface_are_rejected() {
         for position in [[1.5, 0.25, 0.5], [0.5, 0.5, 0.5], [0.5, 0.0, 0.5]] {
             assert_eq!(
-                velocity_for_tick(Direction::East, [0; 3], resting(position), Config::default()),
+                velocity_for_tick(
+                    Direction::East,
+                    [0; 3],
+                    resting(position),
+                    Config::default()
+                ),
                 Err(Error::NotOnSurface)
             );
         }
@@ -327,25 +342,156 @@ mod tests {
         Ok(())
     }
 
+    // Reduced flat-floor prediction fixture, not a replacement for Horizon's
+    // collision tests: tick_move integrates, tick_settle applies f32 drag,
+    // then the native Post restores belt velocity. Taken from the inspected
+    // ItemEntity tick order; there is no position setter in production code.
+    fn flat_physics_tick(item: &mut ItemMotion) {
+        item.position[0] += item.velocity[0];
+        item.position[2] += item.velocity[2];
+        let friction = f64::from(0.98_f32 * 0.6_f32);
+        item.velocity[0] *= friction;
+        item.velocity[2] *= friction;
+    }
+
+    fn drive(item: &mut ItemMotion, direction: Direction) -> Result<(), Error> {
+        let block = support_block(item.position)?;
+        item.velocity = velocity_for_tick(direction, block, *item, Config::default())?;
+        Ok(())
+    }
+
+    fn moving(direction: Direction) -> Result<ItemMotion, Error> {
+        let mut item = resting([0.5, 0.25, 0.5]);
+        item.velocity[1] = 0.0;
+        drive(&mut item, direction)?;
+        Ok(item)
+    }
+
     #[test]
-    fn render_frames_do_not_change_tick_results_and_reload_needs_no_cache() -> Result<(), Error> {
-        let simulate = |frames: usize| -> Result<[f64; 3], Error> {
-            let mut item = resting([0.5, 0.25, 0.5]);
-            for _ in 0..100 {
-                for _ in 0..frames {
-                    // Rendering only reads the authoritative position.
-                    std::hint::black_box(item.position);
+    fn server_only_drive_reproduces_drift_before_twenty_tick_correction() -> Result<(), Error> {
+        let mut server = moving(Direction::East)?;
+        let mut old_client = server;
+        for _ in 0..20 {
+            flat_physics_tick(&mut server);
+            drive(&mut server, Direction::East)?;
+            flat_physics_tick(&mut old_client);
+        }
+        // This is the original defect, not an expected new behavior: server
+        // travels 2 blocks, ordinary client friction almost stops the copy.
+        assert!((server.position[0] - 2.5).abs() < 1.0e-10);
+        assert!(server.position[0] - old_client.position[0] > 1.7);
+        assert!(old_client.velocity[0] < 0.00001);
+        Ok(())
+    }
+
+    #[test]
+    fn shared_post_drive_removes_drift_without_extra_position_packets() -> Result<(), Error> {
+        for direction in DIRECTIONS {
+            let mut server = moving(direction)?;
+            let mut client = server;
+            let d = direction.vector();
+            for _ in 0..400 {
+                let before = client.position;
+                flat_physics_tick(&mut server);
+                drive(&mut server, direction)?;
+                flat_physics_tick(&mut client);
+                drive(&mut client, direction)?;
+                assert_eq!(client.position, server.position);
+                assert_eq!(client.velocity, server.velocity);
+                for axis in [0, 2] {
+                    assert!(
+                        (client.position[axis] - before[axis] - f64::from(d[axis]) * 0.1).abs()
+                            < 1.0e-10
+                    );
                 }
-                let saved_facing = Direction::East.as_str();
-                let loaded_direction = Direction::try_from(saved_facing)?;
-                let block = support_block(item.position)?;
-                item.velocity =
-                    velocity_for_tick(loaded_direction, block, item, Config::default())?;
-                item.position[0] += item.velocity[0];
+                assert_eq!(client.velocity[1], 0.0);
             }
-            Ok(item.position)
-        };
-        assert_eq!(simulate(0)?, simulate(12)?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn normal_packet_rounding_stays_small_between_updates() -> Result<(), Error> {
+        let mut server = moving(Direction::East)?;
+        let mut client = server;
+        for tick in 1..=400 {
+            flat_physics_tick(&mut server);
+            drive(&mut server, Direction::East)?;
+            flat_physics_tick(&mut client);
+            drive(&mut client, Direction::East)?;
+            if tick % 20 == 0 {
+                // Bound the standard 1/4096 coordinate encoding error. The
+                // fix does not introduce a packet or a teleport of its own.
+                let correction = (server.position[0] * 4096.0).round() / 4096.0;
+                assert!((client.position[0] - correction).abs() <= 1.0 / 4096.0);
+                client.position[0] = correction;
+            }
+            assert!((server.position[0] - client.position[0]).abs() <= 1.0 / 4096.0);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn low_fps_and_catch_up_batches_keep_the_same_game_tick_trajectory() -> Result<(), Error> {
+        for fps in [5, 17, 30, 60, 144] {
+            let mut item = moving(Direction::East)?;
+            let mut elapsed_ticks = 0;
+            for frame in 1..=fps * 10 {
+                let due = frame * 20 / fps;
+                while elapsed_ticks < due {
+                    flat_physics_tick(&mut item);
+                    drive(&mut item, Direction::East)?;
+                    elapsed_ticks += 1;
+                }
+            }
+            assert_eq!(elapsed_ticks, 200);
+            assert!((item.position[0] - 20.5).abs() < 1.0e-10);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn many_items_have_the_same_per_tick_displacement() -> Result<(), Error> {
+        for count in [1, 256, 4096] {
+            let mut items = vec![moving(Direction::East)?; count];
+            for _ in 0..200 {
+                for item in &mut items {
+                    flat_physics_tick(item);
+                    drive(item, Direction::East)?;
+                }
+            }
+            for item in items {
+                assert!((item.position[0] - 20.5).abs() < 1.0e-10);
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn prediction_during_tick_freeze_cannot_move_a_position() -> Result<(), Error> {
+        let mut item = moving(Direction::East)?;
+        let frozen = item.position;
+        for _ in 0..100 {
+            // The window may tick while the world is frozen; no physics.
+            drive(&mut item, Direction::East)?;
+        }
+        assert_eq!(item.position, frozen);
+        flat_physics_tick(&mut item);
+        assert!((item.position[0] - frozen[0] - 0.1).abs() < 1.0e-10);
+        Ok(())
+    }
+
+    #[test]
+    fn both_adapters_project_the_same_chunk_boundary_without_moving_y() -> Result<(), Error> {
+        assert_eq!(
+            next_support_block([15.95, 64.25, 0.5], [0.1, 50.0, 0.0])?,
+            [16, 64, 0]
+        );
+        assert_eq!(
+            next_support_block([-16.0, -63.75, 0.5], [-0.1, -50.0, 0.0])?,
+            [-17, -64, 0]
+        );
+        assert!(next_support_block([0.5, 0.25, 0.5], [f64::NAN, 0.0, 0.0]).is_err());
         Ok(())
     }
 }

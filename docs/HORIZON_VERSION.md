@@ -1,15 +1,17 @@
+> Актуальная цель 0.1.1 — фактическая сборка пользователя `9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0`, API 415. Исходный прототип 0.1.0 исследовался на f4d8d62; сохранённая ниже история исследования не является новой игровой проверкой.
+
 # Версии Horizon и инструментария
 
-Исследование выполнено 14 ноября 2026 года по официальным репозиториям и `playhorizon.dev/docs`. Исходники получены через коннектор GitHub: shell-сеть оказалась недоступна. Полного Git-клона движка в рабочем проекте нет. Машиночитаемые пины — `upstream.lock.json`.
+Исследование выполнено 14 ноября 2026 года по официальным репозиториям и `playhorizon.dev/docs`. Первоначально исходники изучались через коннектор GitHub. При исправлении 0.1.1 разрешённый сетевой режим позволил официальному инструменту получить полное закреплённое дерево в игнорируемый native/target/ и выполнить настоящую проверку. Машиночитаемые пины — `upstream.lock.json`.
 
 | Проект | Полный commit SHA |
 | --- | --- |
-| [Horizon](https://github.com/horizon-rust/horizon/commit/f4d8d62c31ec2b08046faded7bef1b476783f319) | `f4d8d62c31ec2b08046faded7bef1b476783f319` |
+| [Horizon](https://github.com/horizon-rust/horizon/commit/9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0) | `9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0` |
 | [Horizon Mixins](https://github.com/horizon-rust/horizon-mixins/commit/e59da9094f0c2fdda6c627fe9eff22dec6a906f0) | `e59da9094f0c2fdda6c627fe9eff22dec6a906f0` |
 | [Horizon Mods](https://github.com/horizon-rust/horizon-mods/commit/656f948e0d058d647676857625da3d4b66755929) | `656f948e0d058d647676857625da3d4b66755929` |
 | [PowerCraft 2.0](https://github.com/PowerCraft/2.0/commit/795369c5a03c7cf39307398a432a5d644698e1df) | `795369c5a03c7cf39307398a432a5d644698e1df` |
 
-Horizon выбран по HEAD `main`, наблюдавшемуся при исследовании; после этого в сборках используется только полный SHA. Он не объявляется проверенным релизом Nightly. Перед публикацией следует выбрать доступный постоянный Nightly source tag и повторить полную сборку/игровые проверки. `compatibility.json` пока означает выбранную цель, а не доказанную совместимость.
+Цель 0.1.1 выбрана по фактической работающей сборке пользователя, а не по текущему main. Официальный cargo check с модом на этом SHA прошёл. Новый игровой прогон и Windows-сборка ещё требуются; подробности в SMOOTH_MOVEMENT_VERIFICATION.json.
 
 ## Игра и формат данных
 
@@ -29,9 +31,9 @@ Horizon выбран по HEAD `main`, наблюдавшемуся при ис�
 | Сущности | `EntityRef` — временный handle, API 373; скорость, bounding box и on_ground — API 379. `set_velocity` отказывает клиенту, игроку, устаревшей сущности и нечисловым значениям |
 | Размещение | `state_for_placement`, версия 1; настоящий `PlacementContext` имеет `yaw`. Штатные `state_block`/`state_with_property` проверены в `GameLevel` |
 | Сохранение | Обычные block states сохраняются движком. API также имеет mod block entities, SNBT и attachments; для простого конвейера они не используются |
-| Клиент/сервер | Контент `side=both`; авторитетная физика на сервере. Копия клиента не изменяется нативным setter |
+| Клиент/сервер | Контент `side=both`; авторитетная физика на сервере. Публичный setter не меняет клиента; в 0.1.1 отдельный tick-адаптер меняет только внутреннюю velocity клиента |
 | `.hnmod` | ZIP `horizon-native.json` + `mixins/powercraft2/`; это исходный bundle, который лаунчер компилирует в отдельную игру |
-| `horizon-mixin.toml` | `[mod]`, `[compatibility]`, один `[[module]]`, три именованных `[[injection]]` вида HEAD. Исходное дерево движка не редактируется |
+| `horizon-mixin.toml` | `[mod]`, `[compatibility]`, один `[[module]]`, четыре именованных `[[injection]]` вида HEAD. Исходное дерево движка не редактируется |
 | `compatibility.json` | Локальные пины game/hooks/Horizon/Mixins; официальный `native.py` использует их при упаковке и staging |
 
 WebAssembly `mod.wasm` — legacy, в актуальном формате больше не запускается. Java Forge/Fabric-классы не являются Rust API и здесь не запускаются. Объединённый native+content `.hmod` поддерживается форматом, но для простоты и совместимости упаковки выбраны две части.

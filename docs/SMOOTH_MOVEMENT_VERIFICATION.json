@@ -1,0 +1,99 @@
+{
+  "date_utc": "2026-11-14",
+  "native_version": "0.1.1",
+  "content_version": "0.1.0",
+  "horizon": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
+  "horizon_mixins": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+  "game": "26.3",
+  "rust": "1.95.0",
+  "baseline_in_game": "Пользователь подтвердил установку блока и движение предметов в одиночном мире; сообщил о рывках. Это проверка 0.1.0, не нового исправления.",
+  "checks": {
+    "scripts/check.sh": {
+      "result": "passed",
+      "python_tests": 15,
+      "rust_tests": 17,
+      "cargo_fmt": "passed",
+      "rustfmt_helpers": "passed",
+      "cargo_clippy_all_targets_D_warnings": "passed",
+      "log": "logs/smooth-project-check.log"
+    },
+    "source_audit": {
+      "result": "passed",
+      "files": 9,
+      "command": "python3 scripts/audit.py --sources native/target/horizon/9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0"
+    },
+    "official_horizon_integration": {
+      "result": "passed",
+      "command": "python3 native/tools/native.py check powercraft2",
+      "environment": {
+        "NATIVE_NO_DEFAULT_FEATURES": "1",
+        "CARGO_NET_OFFLINE": "true"
+      },
+      "details": "Официальный Mixins применил четыре именованных хука; cargo check -p horizon-client --bin horizon-client --locked --no-default-features -j2, RUSTFLAGS=-D warnings. Проверен настоящий движок с модом на Linux; это не сборка Windows exe и не запуск игры.",
+      "log": "logs/horizon-smooth-check.log"
+    },
+    "official_package": {
+      "result": "passed",
+      "command": "python3 native/tools/native.py package powercraft2",
+      "postprocessing": "Удалено только необязательное поле hooks из horizon-native.json для строгого Horizon SHA. Rust-payload неизменён."
+    },
+    "native_archive": {
+      "ok": true,
+      "report": {
+        "api": "native-1/9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0/e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+        "api_level": null,
+        "capabilities": [],
+        "game": "26.3",
+        "id": "powercraft2",
+        "kind": "native-mod",
+        "requires": [],
+        "sha256": "542afdca27891482851c62cf60dbe3a876b4dc6ffccba010479b825995414073",
+        "side": null,
+        "signed": false,
+        "size": 8721,
+        "version": "0.1.1"
+      }
+    },
+    "content_archive": {
+      "ok": true,
+      "report": {
+        "api": "0.2",
+        "api_level": null,
+        "capabilities": [
+          "registries"
+        ],
+        "game": null,
+        "id": "powercraft2",
+        "kind": "mod",
+        "requires": [],
+        "sha256": "ce0e310899c6294aa8f926e659c60a448ee70115045ce5ebe5f8c6406b7dc6c8",
+        "side": "both",
+        "signed": false,
+        "size": 3661,
+        "version": "0.1.0"
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "path": "dist/powercraft2-0.1.1.hnmod",
+      "bytes": 8721,
+      "sha256": "542afdca27891482851c62cf60dbe3a876b4dc6ffccba010479b825995414073"
+    },
+    {
+      "path": "dist/powercraft2-0.1.0-content.hmod",
+      "bytes": 3661,
+      "sha256": "ce0e310899c6294aa8f926e659c60a448ee70115045ce5ebe5f8c6406b7dc6c8"
+    }
+  ],
+  "not_verified": [
+    "Запуск исправления 0.1.1 в Minecraft/Windows",
+    "Фактические FPS/TPS под игровой нагрузкой",
+    "Подбор/слияние, стены/повороты, сохранение/перезагрузка мира после исправления",
+    "LAN и сервер с несколькими клиентами",
+    "Совместная сборка с другими native-модами"
+  ],
+  "model_scope": "Тесты используют уменьшенную модель ровной поверхности с трением и production velocity_for_tick. Группировка тиков под 5/17/30/60/144 FPS и 1/256/4096 предметов не является игровым benchmark.",
+  "update": "Заменить только native 0.1.0 на 0.1.1 и выполнить native rebuild в Launcher. Сохранить прежний контент 0.1.0. На клиенте и сервере нужен одинаковый native код.",
+  "github": "origin не задан; локальная рабочая ветка fix/conveyor-continuous-motion. Push не выполнялся."
+}

@@ -40,7 +40,8 @@ fn powercraft2_item_tick(
         velocity,
         on_ground,
     };
-    let Ok(config) = transport::Config::new(0.1, 0.04) else {
+    let Ok(config) = transport::Config::new(transport::DEFAULT_SPEED, transport::DEFAULT_CENTERING)
+    else {
         return;
     };
     let Ok(mut next_velocity) = transport::velocity_for_tick(direction, block, motion, config)
@@ -49,12 +50,7 @@ fn powercraft2_item_tick(
     };
     // Do not drive an item across a chunk edge that the server has not loaded.
     // Vanilla still owns collisions, gravity, item saves, merging and pickup.
-    let next = [
-        position[0] + next_velocity[0],
-        position[1],
-        position[2] + next_velocity[2],
-    ];
-    let Ok(next_block) = transport::support_block(next) else {
+    let Ok(next_block) = transport::next_support_block(position, next_velocity) else {
         return;
     };
     if !level.is_loaded(host, next_block) {

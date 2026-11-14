@@ -1,6 +1,14 @@
 {
-  "horizon_revision": "f4d8d62c31ec2b08046faded7bef1b476783f319",
+  "horizon_revision": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
   "hooks": [
+    {
+      "name": "tick",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_tick",
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
     {
       "name": "state_for_placement",
       "version": 1,
@@ -85,19 +93,19 @@
   "source_files": [
     {
       "path": "crates/horizon-client/src/game.rs",
-      "git_blob": "16db63d3f0904ca4301770282e347d67e58582fd"
+      "git_blob": "a95d377637c395fe94cd6c72a0f8616f234aca6e"
     },
     {
       "path": "crates/horizon-client/src/game/native_hooks.rs",
-      "git_blob": "1fd052a847ffec8b316adabbae8d5081238f6e34"
+      "git_blob": "73ad42345c51a062597aca3479fa86b85770613b"
     },
     {
       "path": "crates/horizon-client/src/game/native_entity_refs.rs",
-      "git_blob": "8504760b863efc8dde06777fdc0f14cbf39f62b2"
+      "git_blob": "9eef49d6f2f2a988180b0ba49bfb4b617dd1a913"
     },
     {
       "path": "crates/horizon-client/src/game/native_entity_motion.rs",
-      "git_blob": "57b9d84978e971a15370a9c8f9e65c660e4c775f"
+      "git_blob": "6dc713a9b1d079ca8f56d1c5f4731ac7ed7fdd7f"
     },
     {
       "path": "crates/horizon-client/src/game/native_level_refs.rs",
@@ -105,7 +113,7 @@
     },
     {
       "path": "crates/horizon-client/src/mod_api.rs",
-      "git_blob": "3e775420f4ff0c800ea251b64790d3566eb12358"
+      "git_blob": "7c6008f9267f207e6099e3d1cadbcd2638bf694e"
     },
     {
       "path": "crates/horizon-world/src/level/place.rs",
@@ -121,4 +129,3 @@
     }
   ]
 }
-

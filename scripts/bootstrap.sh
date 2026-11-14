@@ -57,6 +57,20 @@ if ! command -v rsync >/dev/null; then
     elif [[ "$install" == 1 && "$(id -u)" == 0 ]]; then
         apt-get update
         apt-get install --no-install-recommends -y rsync
+    elif [[ "$install" == 1 ]] && command -v apt-get >/dev/null && command -v dpkg-deb >/dev/null; then
+        # Use the configured official APT sources and a private cache. Extract
+        # only the required Debian tools under the project, without sudo.
+        mkdir -p .cache/apt/lists/partial .cache/apt/archives/partial .cache/system-packages
+        apt_args=(-o "Dir::State::lists=$PC2_ROOT/.cache/apt/lists"
+                  -o "Dir::Cache=$PC2_ROOT/.cache/apt"
+                  -o Dir::State::status=/var/lib/dpkg/status)
+        apt-get "${apt_args[@]}" update
+        (cd .cache/system-packages && apt-get "${apt_args[@]}" download rsync libpopt0)
+        for package in .cache/system-packages/*.deb; do
+            dpkg-deb -x "$package" .tools
+        done
+        source scripts/env.sh
+        rsync --version
     else
         echo 'rsync отсутствует; нужен для полной native.py check/build. Системные права не запрашивались.' >&2
     fi

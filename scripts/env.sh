@@ -9,6 +9,9 @@ fi
 if [[ -d "$PC2_ROOT/.tools/usr/bin" ]]; then
     export PATH="$PC2_ROOT/.tools/usr/bin:$PATH"
 fi
+if [[ -d "$PC2_ROOT/.tools/usr/lib/x86_64-linux-gnu" ]]; then
+    export LD_LIBRARY_PATH="$PC2_ROOT/.tools/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 export CARGO_INCREMENTAL=0
 
