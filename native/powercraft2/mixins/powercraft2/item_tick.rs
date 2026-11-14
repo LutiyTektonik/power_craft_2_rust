@@ -47,7 +47,7 @@ fn powercraft2_item_tick(
     else {
         return;
     };
-    let powered = if belt == transport::Belt::Brake {
+    let powered = if matches!(belt, transport::Belt::Brake | transport::Belt::Redirector) {
         let powered = host.neighbor_signal(dimension, block) > 0;
         let value = if powered { "true" } else { "false" };
         // Client neighbor_signal deliberately returns zero. Publish only a
@@ -62,11 +62,24 @@ fn powercraft2_item_tick(
     } else {
         false
     };
+    let route = if belt == transport::Belt::Redirector {
+        transport::redirect_direction(direction, powered, |side| {
+            let at = side.neighbor(block);
+            if !level.is_loaded(host, at) {
+                return transport::RedirectNeighbor::Obstructed;
+            }
+            transport::RedirectNeighbor::from_block(level.block(host, at).as_deref())
+        })
+    } else {
+        direction
+    };
     let Ok(mut next_velocity) =
-        transport::belt_velocity_for_tick(belt, direction, block, motion, config, powered)
+        transport::belt_velocity_for_tick(belt, route, block, motion, config, powered)
     else {
         return;
     };
+    // In the published redirector, storage uses the placed facing before
+    // redirecting any remaining items.
     if let Ok(mut targets) = transport::storage_targets(belt, direction, block, motion, powered) {
         // No entity snapshot/allocation on an ordinary line without a target.
         for target in &mut targets {

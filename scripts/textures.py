@@ -45,13 +45,22 @@ def detector(x, y, powered=False):
     return top(x, y)
 
 
+def redirector(x, y, powered=False):
+    if x in (2, 3, 12, 13) and 4 <= y <= 11:
+        return (219, 139, 255) if powered else (100, 71, 132)
+    color = top(x, y)
+    return (156, 114, 197) if color == (245, 184, 48) else color
+
+
 def textures():
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
             'brake_conveyor_top.png': png(brake),
             'brake_conveyor_powered.png': png(lambda x, y: brake(x, y, True)),
             'detector_conveyor_top.png': png(detector),
-            'detector_conveyor_powered.png': png(lambda x, y: detector(x, y, True))}
+            'detector_conveyor_powered.png': png(lambda x, y: detector(x, y, True)),
+            'redirector_conveyor_top.png': png(redirector),
+            'redirector_conveyor_powered.png': png(lambda x, y: redirector(x, y, True))}
 
 
 if __name__ == '__main__':

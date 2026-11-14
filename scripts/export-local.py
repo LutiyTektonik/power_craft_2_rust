@@ -19,14 +19,15 @@ def git(*args):
 def main():
     if git('status', '--porcelain', '--untracked-files=normal').strip():
         raise ValueError('Сначала сохраните все изменения в Git; экспортируется только HEAD.')
-    version = json.loads((ROOT / 'docs/VERIFICATION.json').read_text())
+    verification = json.loads((ROOT / 'docs/VERIFICATION.json').read_text())
+    release = verification['content_version']
     files = {}
     with zipfile.ZipFile(io.BytesIO(git('archive', '--format=zip', 'HEAD'))) as source:
         for entry in source.infolist():
             if not entry.is_dir():
                 files['source/' + entry.filename] = (source.read(entry), entry.external_attr)
     artifacts = [
-        'powercraft2-0.4.0.hnmod', 'powercraft2-0.4.0-content.hmod',
+        *(Path(artifact['path']).name for artifact in verification['artifacts']),
         'powercraft2-0.2.0.hnmod', 'powercraft2-0.2.0-content.hmod',
         'powercraft2-windows11-test-kit.zip',
     ]
@@ -37,7 +38,7 @@ def main():
             if archive.testzip() is not None:
                 raise ValueError(f'Повреждён архив: {name}')
         files['artifacts/' + name] = (data, 0o100644 << 16)
-    for artifact in version['artifacts']:
+    for artifact in verification['artifacts']:
         name = Path(artifact['path']).name
         data = files['artifacts/' + name][0]
         if hashlib.sha256(data).hexdigest() != artifact['sha256']:
@@ -60,8 +61,8 @@ git fetch origin --tags
 docs/LOCAL_DEVELOPMENT.md. Настройте среду через scripts/bootstrap.sh --install,
 source scripts/env.sh; затем scripts/check.sh. Авторизация переносится отдельно.
 source/ — снимок, project.bundle — история. Не копируйте source поверх клона.
-artifacts/ — установочные пары 0.4.0 и проверенной 0.2.0, Windows test kit.
-Все файлы сверяются по TRANSFER_MANIFEST.json. Игровая логика не менялась.
+artifacts/ — установочные пары {release} и проверенной 0.2.0, Windows test kit.
+Все файлы сверяются по TRANSFER_MANIFEST.json.
 '''
     files['RESTORE.txt'] = (restore.encode(), 0o100644 << 16)
     manifest = {
@@ -69,7 +70,7 @@ artifacts/ — установочные пары 0.4.0 и проверенной
         'branch': branch,
         'commit': git('rev-parse', 'HEAD').decode().strip(),
         'refs': git('show-ref', '--heads', '--tags').decode().splitlines(),
-        'game_version': '0.4.0; новые функции требуют игровой приёмки',
+        'game_version': release,
         'files': {name: hashlib.sha256(data).hexdigest()
                   for name, (data, _) in sorted(files.items())},
     }

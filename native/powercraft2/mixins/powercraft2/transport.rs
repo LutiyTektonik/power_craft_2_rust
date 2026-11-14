@@ -6,6 +6,7 @@ pub const CONVEYOR: &str = "powercraft2:conveyor";
 pub const SPEEDY_CONVEYOR: &str = "powercraft2:speedy_conveyor";
 pub const BRAKE_CONVEYOR: &str = "powercraft2:brake_conveyor";
 pub const DETECTOR_CONVEYOR: &str = "powercraft2:detector_conveyor";
+pub const REDIRECTOR_CONVEYOR: &str = "powercraft2:redirector_conveyor";
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
 pub const DEFAULT_CENTERING: f64 = 0.04;
@@ -18,6 +19,7 @@ pub enum Belt {
     Speedy,
     Brake,
     Detector,
+    Redirector,
 }
 
 impl Belt {
@@ -27,6 +29,7 @@ impl Belt {
             SPEEDY_CONVEYOR => Some(Self::Speedy),
             BRAKE_CONVEYOR => Some(Self::Brake),
             DETECTOR_CONVEYOR => Some(Self::Detector),
+            REDIRECTOR_CONVEYOR => Some(Self::Redirector),
             _ => None,
         }
     }
@@ -80,6 +83,35 @@ impl Direction {
             Self::South => [0, 0, 1],
             Self::West => [-1, 0, 0],
         }
+    }
+
+    const fn left(self) -> Self {
+        match self {
+            Self::North => Self::West,
+            Self::East => Self::North,
+            Self::South => Self::East,
+            Self::West => Self::South,
+        }
+    }
+
+    const fn right(self) -> Self {
+        match self {
+            Self::North => Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North,
+        }
+    }
+
+    const fn opposite(self) -> Self {
+        self.left().left()
+    }
+
+    pub fn neighbor(self, [x, y, z]: [i32; 3]) -> [i32; 3] {
+        // Callers derive the position from support_block; horizontal bounds
+        // leave room for one neighbour on either side.
+        let [dx, _, dz] = self.vector();
+        [x + dx, y, z + dz]
     }
 
     pub fn from_yaw(yaw: f32) -> Result<Self, Error> {
@@ -221,7 +253,7 @@ pub fn belt_velocity_for_tick(
     powered: bool,
 ) -> Result<[f64; 3], Error> {
     let config = match belt {
-        Belt::Normal | Belt::Detector => config,
+        Belt::Normal | Belt::Detector | Belt::Redirector => config,
         Belt::Speedy => Config::new(config.speed * 2.0, config.centering)?,
         Belt::Brake => Config::new(config.speed * 0.6, config.centering)?,
     };
@@ -237,6 +269,47 @@ pub fn belt_velocity_for_tick(
     } else {
         Ok(driven)
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RedirectNeighbor {
+    Belt,
+    Air,
+    Obstructed,
+}
+
+impl RedirectNeighbor {
+    pub fn from_block(block: Option<&str>) -> Self {
+        match block {
+            Some("minecraft:air" | "minecraft:cave_air" | "minecraft:void_air") => Self::Air,
+            Some(block) if Belt::from_block(block).is_some() => Self::Belt,
+            _ => Self::Obstructed,
+        }
+    }
+}
+
+pub fn redirect_direction(
+    facing: Direction,
+    powered: bool,
+    mut neighbor: impl FnMut(Direction) -> RedirectNeighbor,
+) -> Direction {
+    // Forge's LEFT/RIGHT are defined in the placement frame. In world
+    // coordinates LEFT is clockwise, and the unpowered check looks behind.
+    let right = facing.right();
+    let right_neighbor = neighbor(right);
+    if powered && right_neighbor != RedirectNeighbor::Obstructed {
+        return right;
+    }
+    let left = facing.left();
+    let left_neighbor = neighbor(left);
+    if (powered && left_neighbor != RedirectNeighbor::Obstructed)
+        || (left_neighbor == RedirectNeighbor::Belt
+            && right_neighbor == RedirectNeighbor::Belt
+            && neighbor(facing.opposite()) != RedirectNeighbor::Belt)
+    {
+        return left;
+    }
+    facing
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1191,6 +1264,90 @@ mod tests {
             assert_eq!(remaining, expected);
             assert_eq!(remaining + stored, 150);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn redirector_routes_like_the_published_belt_for_all_facings() {
+        use RedirectNeighbor::{Air, Belt, Obstructed};
+
+        for (index, facing) in DIRECTIONS.into_iter().enumerate() {
+            let left = DIRECTIONS[(index + 3) % 4];
+            let right = DIRECTIONS[(index + 1) % 4];
+            let behind = DIRECTIONS[(index + 2) % 4];
+            // The published metadata table is in south/west/north/east order.
+            // Its preferred powered exits are west/north/east/south.
+            for (powered, sides, expected) in [
+                (false, [Air, Belt, Belt], left),
+                (true, [Air, Belt, Belt], right),
+                (false, [Belt, Belt, Belt], facing),
+                (false, [Obstructed, Air, Air], facing),
+                (true, [Belt, Air, Obstructed], left),
+                (true, [Belt, Obstructed, Obstructed], facing),
+                (true, [Belt, Air, Belt], right),
+            ] {
+                assert_eq!(
+                    redirect_direction(facing, powered, |side| {
+                        if side == behind {
+                            sides[0]
+                        } else if side == left {
+                            sides[1]
+                        } else {
+                            assert_eq!(side, right);
+                            sides[2]
+                        }
+                    }),
+                    expected,
+                    "{facing:?}, {powered}, {sides:?}"
+                );
+            }
+        }
+        assert_eq!(RedirectNeighbor::from_block(None), Obstructed);
+        assert_eq!(
+            RedirectNeighbor::from_block(Some("minecraft:stone")),
+            Obstructed
+        );
+        assert_eq!(
+            RedirectNeighbor::from_block(Some("minecraft:cave_air")),
+            Air
+        );
+        assert_eq!(
+            RedirectNeighbor::from_block(Some(REDIRECTOR_CONVEYOR)),
+            Belt
+        );
+    }
+
+    #[test]
+    fn redirector_uses_normal_speed_and_stores_by_placed_facing() -> Result<(), Error> {
+        assert_eq!(
+            Belt::from_block(REDIRECTOR_CONVEYOR),
+            Some(Belt::Redirector)
+        );
+        let block = [-16, 1, 15];
+        let item = resting([-15.5, 1.25, 15.5]);
+        let route = redirect_direction(Direction::East, true, |_| RedirectNeighbor::Air);
+        assert_eq!(route, Direction::South);
+        let velocity = belt_velocity_for_tick(
+            Belt::Redirector,
+            route,
+            block,
+            item,
+            Config::default(),
+            true,
+        )?;
+        assert_eq!(velocity, [0.0, -0.02, DEFAULT_SPEED]);
+        assert_eq!(
+            storage_targets(Belt::Redirector, Direction::East, block, item, true)?[0],
+            Some(StorageTarget {
+                position: [-15, 1, 15],
+                face: StorageFace::West
+            })
+        );
+        let early = resting([-15.8, 1.25, 15.5]);
+        assert_eq!(
+            storage_targets(Belt::Redirector, Direction::East, block, early, true)?,
+            [None; 4]
+        );
         Ok(())
     }
 

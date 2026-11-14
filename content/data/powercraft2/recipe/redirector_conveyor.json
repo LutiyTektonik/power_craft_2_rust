@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "C",
+    "R"
+  ],
+  "key": {
+    "C": "powercraft2:conveyor",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:redirector_conveyor",
+    "count": 1
+  }
+}

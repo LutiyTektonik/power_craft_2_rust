@@ -30,7 +30,7 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
         let Some(belt) = transport::Belt::from_block(state.name.as_str()) else {
             continue;
         };
-        let powered = if belt == transport::Belt::Brake {
+        let powered = if matches!(belt, transport::Belt::Brake | transport::Belt::Redirector) {
             match state.properties.get("powered").map(String::as_str) {
                 Some("true") => true,
                 Some("false") => false,
@@ -50,8 +50,23 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
             velocity: [item.velocity.x, item.velocity.y, item.velocity.z],
             on_ground: item.on_ground,
         };
+        let route = if belt == transport::Belt::Redirector {
+            transport::redirect_direction(direction, powered, |side| {
+                let [x, y, z] = side.neighbor(block);
+                if !world.chunks.contains_key(&(x >> 4, z >> 4)) {
+                    return transport::RedirectNeighbor::Obstructed;
+                }
+                transport::RedirectNeighbor::from_block(
+                    registry
+                        .state(world.block(x, y, z))
+                        .map(|state| state.name.as_str()),
+                )
+            })
+        } else {
+            direction
+        };
         let Ok(mut velocity) =
-            transport::belt_velocity_for_tick(belt, direction, block, motion, config, powered)
+            transport::belt_velocity_for_tick(belt, route, block, motion, config, powered)
         else {
             continue;
         };

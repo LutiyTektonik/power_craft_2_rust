@@ -101,15 +101,15 @@ def validate(root=ROOT, sources=None):
     require(recipe['result'] == {'id': 'powercraft2:conveyor', 'count': 4}, 'recipe result mismatch')
     for name, data in textures().items():
         require((content / 'assets/powercraft2/textures/block' / name).read_bytes() == data, 'texture provenance mismatch')
-    for name in ('speedy_conveyor', 'brake_conveyor', 'detector_conveyor'):
+    for name in ('speedy_conveyor', 'brake_conveyor', 'detector_conveyor', 'redirector_conveyor'):
         definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
         require(definition['item'] is True and definition['template'] == block['template'], 'variant registration mismatch')
         require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
         require(definition['shapes']['default'] == definition['collision_shapes']['default'] == shape, 'variant surface mismatch')
         require(definition['default_state']['facing'] == 'north', 'variant default mismatch')
         states = read_json(content / f'assets/powercraft2/blockstates/{name}.json')['variants']
-        if name in ('brake_conveyor', 'detector_conveyor'):
-            power_name = 'brake' if name == 'brake_conveyor' else 'detector'
+        if name in ('brake_conveyor', 'detector_conveyor', 'redirector_conveyor'):
+            power_name = name.removesuffix('_conveyor')
             require(definition['state_properties']['powered'] == {'type': 'boolean'}, f'invalid {power_name} powered schema')
             require(definition['default_state']['powered'] == 'false', f'invalid {power_name} default power')
             expected_states = {f'facing={d},powered={power}' for d in directions for power in ('false', 'true')}
@@ -125,10 +125,14 @@ def validate(root=ROOT, sources=None):
             require(read_json(model_path)['elements'][0]['to'] == [16, 4, 16], 'variant visual/collision mismatch')
         recipe = read_json(content / f'data/powercraft2/recipe/{name}.json')
         require(recipe['result']['id'] == f'powercraft2:{name}', 'variant recipe mismatch')
+        if name == 'redirector_conveyor':
+            require(recipe['pattern'] == ['C', 'R']
+                    and recipe['key'] == {'C': 'powercraft2:conveyor', 'R': 'minecraft:redstone'}
+                    and recipe['result']['count'] == 1, 'published redirector recipe mismatch')
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == f'powercraft2:{name}', 'variant loot mismatch')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor'], 'transport tab mismatch')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:
