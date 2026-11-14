@@ -568,8 +568,8 @@
       "module": "transport",
       "object": "separationBelt",
       "class": "PCtr_BlockBeltSeparator",
-      "comparison": "Отсутствует и требует реализации",
-      "port_status": "Не начата",
+      "comparison": "Перенесён частично",
+      "port_status": "0.6.0: меню, фильтры, деление и выгрузка выпавших предметов реализованы. Игровая проверка предстоит.",
       "source": "PUBLISHED_MECHANICS.json",
       "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
     },

@@ -5,29 +5,29 @@
   "game": "26.3",
   "rust": "1.95.0",
   "date": "2026-11-15",
-  "native_version": "0.5.0",
-  "content_version": "0.5.0",
-  "logs_directory": "target/verification-redirector",
+  "native_version": "0.6.0",
+  "content_version": "0.6.0",
+  "logs_directory": "target/verification-separator",
   "baseline": {
     "tag": "powercraft2-v0.2.0-tested",
     "description": "Три ленты испытаны пользователем в 0.2.0. Локальный Windows-прогон 0.4.0 зафиксирован ниже."
   },
   "implemented": [
-    "Перенаправляющая лента: маршрут по редстоуну и соседним лентам, раздельные размещённый facing и направление движения.",
-    "Разгрузка по направлению установки в существующие семь типов контейнеров. Обычная скорость и общий расчёт сервера и клиента.",
-    "Опубликованный рецепт 0.1.0B, предмет, модели, текстуры, ru/en и творческая вкладка."
+    "Сортирующая лента с 18 сохраняемыми образцами, двумя группами 3×3 и одним предметом на ячейку.",
+    "Выходы по фильтрам, пропорциональное деление стопок, взвешенный выбор для одиночных предметов и передача в контейнер по выбранному маршруту.",
+    "Рецепт 0.1.0B, блок, предмет, четыре направления, модель, текстура, ru/en и творческая вкладка."
   ],
   "checks": {
     "project": {
       "command": "scripts/check.sh",
       "status": "passed",
-      "rust_tests": 47,
+      "rust_tests": 52,
       "python_tests": 28,
       "log": "logs/project-check.log"
     },
     "horizon_source_audit": {
       "status": "passed",
-      "verified_files": 15,
+      "verified_files": 17,
       "log": "logs/source-audit.json"
     },
     "core_release_build": {
@@ -43,15 +43,15 @@
     },
     "native_validation": {
       "status": "passed",
-      "log": "logs/native-validation.log"
+      "log": "logs/package-build.log"
     },
     "content_validation": {
       "status": "passed",
-      "log": "logs/content-validation.log"
+      "log": "logs/package-build.log"
     },
     "preservation": {
       "status": "passed",
-      "unchanged_content_files": 36,
+      "unchanged_content_files": 45,
       "additive_catalog_files": 3
     }
   },
@@ -95,25 +95,25 @@
   },
   "artifacts": [
     {
-      "path": "dist/powercraft2-0.5.0.hnmod",
-      "bytes": 19184,
-      "sha256": "33ac03680b68e1fdfd66de8cda5329505fe48400b0ce708755ad2aa41b57b76f"
+      "path": "dist/powercraft2-0.6.0.hnmod",
+      "bytes": 24561,
+      "sha256": "b34a2629400267e009a747fe0d45810799c99c9645fbf9835b7951e3ea6f1967"
     },
     {
-      "path": "dist/powercraft2-0.5.0-content.hmod",
-      "bytes": 17799,
-      "sha256": "5caa38e1e69307d295cdc92644205aec21a71b0022c59414f38607b4c7b94688"
+      "path": "dist/powercraft2-0.6.0-content.hmod",
+      "bytes": 20643,
+      "sha256": "c74f43571d1928a25ba095aabb1c411b2e164a7b8f9de9f2ed029b670375faf9"
     }
   ],
   "not_verified": [
-    "Маршруты, разгрузка перенаправляющей ленты и переключение питания в игре на 0.5.0.",
-    "Повторный вход, LAN, остальные типы контейнеров и массовая нагрузка."
+    "Меню, сохранение образцов, пропорции деления, движение и разгрузка сортировщика в игре.",
+    "Переключение и разгрузка перенаправляющей ленты, LAN и массовая нагрузка."
   ],
   "limitations": [
-    "Маршрут пересчитывается каждый тик. При переключении редстоуна уже движущийся предмет может сменить направление.",
-    "Индикация питания обновляется при обработке предмета. Клиент получает powered через штатное обновление состояния.",
-    "Перенаправление охватывает только выпавшие предметы. Вагонетки, мобы, игроки и специальные действия Forge остаются в очереди."
+    "Фильтры сравнивают ID и повреждение, как в опубликованной версии. Дополнительные компоненты не участвуют в сравнении и сохраняются в стопках.",
+    "Маршрут сущности временный. При повторной загрузке он рассчитывается заново.",
+    "Движение сортировщика видно через штатный трекер Horizon. Плавность переходов, деления и совместимость с другими нативными модами требуют игрового прогона."
   ],
-  "update": "Для Windows обновить обе части до 0.5.0 и выполнить native rebuild с закреплёнными ревизиями.",
-  "git": "Локальная ветка work/transport-redirector на базе dd34b14 (work/transport-detector)."
+  "update": "Для Windows обновить обе части до 0.6.0 и выполнить native rebuild с закреплёнными ревизиями.",
+  "git": "Локальная ветка work/transport-separator на базе aa74ac9 (work/transport-redirector)."
 }

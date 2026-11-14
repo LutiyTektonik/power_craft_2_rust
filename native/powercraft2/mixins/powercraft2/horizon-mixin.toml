@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.5.0"
+version = "0.6.0"
 priority = 100
 
 [compatibility]
@@ -115,4 +115,43 @@ bindings = [
   { name = "level", ty = "&crate::game::GameLevel<'_>", value = "self" },
   { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
   { name = "source", ty = "&mut bool", value = "&mut *source" },
+]
+
+[[module]]
+id = "separator"
+file = "crates/horizon-client/src/game.rs"
+name = "powercraft2_separator"
+source = "separator.rs"
+
+[[injection]]
+id = "separator_container"
+hook = "block_entity_container"
+hook_version = 1
+kind = "HEAD"
+helper = "separator_container.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "container", ty = "&mut Option<horizon_client::containers::ModContainer>", value = "&mut *container" },
+]
+
+[[injection]]
+id = "separator_screen"
+hook = "screen"
+hook_version = 1
+kind = "HEAD"
+helper = "separator_screen.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "screen", ty = "&mut Option<horizon_client::mod_api::NativeScreen>", value = "&mut *screen" },
+]
+
+[[injection]]
+id = "separator_slot_rules"
+hook = "menu_slot_rules"
+hook_version = 1
+kind = "HEAD"
+helper = "separator_slot_rules.rs"
+bindings = [
+  { name = "menu", ty = "&str", value = "menu" },
+  { name = "max_stack", ty = "&mut u32", value = "&mut *max_stack" },
 ]

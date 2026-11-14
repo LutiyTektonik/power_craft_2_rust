@@ -4,5 +4,6 @@
   "block.powercraft2.speedy_conveyor": "Speedy Conveyor",
   "block.powercraft2.brake_conveyor": "Brake Conveyor",
   "block.powercraft2.detector_conveyor": "Detector Conveyor",
-  "block.powercraft2.redirector_conveyor": "Redirector Conveyor"
+  "block.powercraft2.redirector_conveyor": "Redirector Conveyor",
+  "block.powercraft2.separator_conveyor": "Sorting Conveyor"
 }

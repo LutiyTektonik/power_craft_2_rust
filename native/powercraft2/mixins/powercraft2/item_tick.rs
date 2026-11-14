@@ -26,6 +26,10 @@ fn powercraft2_item_tick(
     let Some(name) = level.block(host, block) else {
         return;
     };
+    if name != transport::SEPARATOR_CONVEYOR {
+        super::powercraft2_separator::clear_route(game, entity);
+    }
+    let host: &mut dyn horizon_client::mod_api::Host = game;
     let Some(belt) = transport::Belt::from_block(&name) else {
         return;
     };
@@ -43,6 +47,18 @@ fn powercraft2_item_tick(
         velocity,
         on_ground,
     };
+    let (sort_route, motion) = if belt == transport::Belt::Separator {
+        let Some((route, adjusted)) =
+            super::powercraft2_separator::route(game, entity, block, direction, motion)
+        else {
+            return;
+        };
+        (Some(route), adjusted)
+    } else {
+        (None, motion)
+    };
+    let host: &mut dyn horizon_client::mod_api::Host = game;
+    let position = motion.position;
     let Ok(config) = transport::Config::new(transport::DEFAULT_SPEED, transport::DEFAULT_CENTERING)
     else {
         return;
@@ -62,7 +78,9 @@ fn powercraft2_item_tick(
     } else {
         false
     };
-    let route = if belt == transport::Belt::Redirector {
+    let route = if let Some(route) = sort_route {
+        route
+    } else if belt == transport::Belt::Redirector {
         transport::redirect_direction(direction, powered, |side| {
             let at = side.neighbor(block);
             if !level.is_loaded(host, at) {
@@ -80,7 +98,10 @@ fn powercraft2_item_tick(
     };
     // In the published redirector, storage uses the placed facing before
     // redirecting any remaining items.
-    if let Ok(mut targets) = transport::storage_targets(belt, direction, block, motion, powered) {
+    let storage_direction = sort_route.unwrap_or(direction);
+    if let Ok(mut targets) =
+        transport::storage_targets(belt, storage_direction, block, motion, powered)
+    {
         // No entity snapshot/allocation on an ordinary line without a target.
         for target in &mut targets {
             if let Some(at) = target

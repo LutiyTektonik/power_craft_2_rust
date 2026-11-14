@@ -4,5 +4,6 @@
   "block.powercraft2.speedy_conveyor": "Быстрая конвейерная лента",
   "block.powercraft2.brake_conveyor": "Тормозная конвейерная лента",
   "block.powercraft2.detector_conveyor": "Детекторная конвейерная лента",
-  "block.powercraft2.redirector_conveyor": "Перенаправляющая лента"
+  "block.powercraft2.redirector_conveyor": "Перенаправляющая лента",
+  "block.powercraft2.separator_conveyor": "Сортирующая лента"
 }

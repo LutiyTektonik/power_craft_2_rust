@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "D",
+    "C",
+    "R"
+  ],
+  "key": {
+    "D": "minecraft:diamond",
+    "C": "powercraft2:conveyor",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:separator_conveyor",
+    "count": 1
+  }
+}

@@ -7,6 +7,8 @@ pub const SPEEDY_CONVEYOR: &str = "powercraft2:speedy_conveyor";
 pub const BRAKE_CONVEYOR: &str = "powercraft2:brake_conveyor";
 pub const DETECTOR_CONVEYOR: &str = "powercraft2:detector_conveyor";
 pub const REDIRECTOR_CONVEYOR: &str = "powercraft2:redirector_conveyor";
+pub const SEPARATOR_CONVEYOR: &str = "powercraft2:separator_conveyor";
+pub const SEPARATOR_SLOTS: usize = 18;
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
 pub const DEFAULT_CENTERING: f64 = 0.04;
@@ -20,6 +22,7 @@ pub enum Belt {
     Brake,
     Detector,
     Redirector,
+    Separator,
 }
 
 impl Belt {
@@ -30,6 +33,7 @@ impl Belt {
             BRAKE_CONVEYOR => Some(Self::Brake),
             DETECTOR_CONVEYOR => Some(Self::Detector),
             REDIRECTOR_CONVEYOR => Some(Self::Redirector),
+            SEPARATOR_CONVEYOR => Some(Self::Separator),
             _ => None,
         }
     }
@@ -253,7 +257,7 @@ pub fn belt_velocity_for_tick(
     powered: bool,
 ) -> Result<[f64; 3], Error> {
     let config = match belt {
-        Belt::Normal | Belt::Detector | Belt::Redirector => config,
+        Belt::Normal | Belt::Detector | Belt::Redirector | Belt::Separator => config,
         Belt::Speedy => Config::new(config.speed * 2.0, config.centering)?,
         Belt::Brake => Config::new(config.speed * 0.6, config.centering)?,
     };
@@ -312,6 +316,101 @@ pub fn redirect_direction(
     facing
 }
 
+/// The menu has two 3×3 banks, displayed left/right relative to the direction of travel.
+pub fn separator_weights(matches: impl Iterator<Item = bool>) -> [u32; 2] {
+    let mut weights = [0; 2];
+    for (slot, matched) in matches.take(SEPARATOR_SLOTS).enumerate() {
+        weights[slot / (SEPARATOR_SLOTS / 2)] += u32::from(matched);
+    }
+    weights
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SortOutput {
+    pub direction: Direction,
+    pub count: u32,
+}
+
+pub fn separator_outputs(
+    facing: Direction,
+    count: u32,
+    [left, right]: [u32; 2],
+    has_belt: impl Fn(Direction) -> bool,
+    roll: impl FnOnce(u32) -> u32,
+) -> [SortOutput; 2] {
+    let single = |direction| {
+        [
+            SortOutput { direction, count },
+            SortOutput {
+                direction,
+                count: 0,
+            },
+        ]
+    };
+    match (left, right) {
+        (0, 0) => return single(facing),
+        (_, 0) => return single(facing.left()),
+        (0, _) => return single(facing.right()),
+        _ => {}
+    }
+    let (left_exit, right_exit) = match (has_belt(facing.left()), has_belt(facing.right())) {
+        (false, true) => (facing, facing.right()),
+        (true, false) => (facing.left(), facing),
+        _ => (facing.left(), facing.right()),
+    };
+    let total = left + right;
+    if count == 1 {
+        return single(if roll(total) < left {
+            left_exit
+        } else {
+            right_exit
+        });
+    }
+    let left_count =
+        ((u64::from(count) * u64::from(left) + u64::from(total / 2)) / u64::from(total)) as u32;
+    [
+        SortOutput {
+            direction: left_exit,
+            count: left_count,
+        },
+        SortOutput {
+            direction: right_exit,
+            count: count - left_count,
+        },
+    ]
+}
+
+/// Place split stacks in separate lanes on the same belt. Their centres
+/// start 0.8 blocks apart on the cross axis, outside vanilla merge reach.
+pub fn separator_split_positions(
+    block: [i32; 3],
+    facing: Direction,
+    first: Direction,
+    second: Direction,
+) -> Option<[[f64; 3]; 2]> {
+    let left = facing.left();
+    let right = facing.right();
+    let lane = |route, other| {
+        if route == facing {
+            if other == left { right } else { left }
+        } else {
+            route
+        }
+    };
+    if first == second {
+        return None;
+    }
+    let place = |route, other| {
+        let [dx, _, dz] = lane(route, other).vector();
+        [
+            f64::from(block[0]) + 0.5 + 0.4 * f64::from(dx),
+            f64::from(block[1]) + BELT_HEIGHT,
+            f64::from(block[2]) + 0.5 + 0.4 * f64::from(dz),
+        ]
+    };
+    Some([place(first, second), place(second, first)])
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StorageFace {
     Down,
@@ -366,7 +465,7 @@ pub fn storage_targets(
     } else {
         (item.position[2] - f64::from(block[2]) - 0.5) * f64::from(dz) >= 0.0
     };
-    if !(past_center || belt == Belt::Brake && powered) {
+    if !(past_center || belt == Belt::Brake && powered || belt == Belt::Separator) {
         return Ok([None; 4]);
     }
     let offset = |delta: [i32; 3], face| -> Result<_, Error> {
@@ -389,6 +488,10 @@ pub fn storage_targets(
         Direction::South => StorageFace::North,
         Direction::West => StorageFace::East,
     };
+    let front = offset([dx, 0, dz], front_face)?;
+    if belt == Belt::Separator {
+        return Ok([front, None, None, None]);
+    }
     let (first, second) = if dx != 0 {
         (
             offset([0, 0, -1], StorageFace::South)?,
@@ -400,12 +503,7 @@ pub fn storage_targets(
             offset([-1, 0, 0], StorageFace::East)?,
         )
     };
-    Ok([
-        offset([dx, 0, dz], front_face)?,
-        first,
-        second,
-        offset([0, 1, 0], StorageFace::Down)?,
-    ])
+    Ok([front, first, second, offset([0, 1, 0], StorageFace::Down)?])
 }
 
 // One bounded budget shared by all destinations in this entity's Post.
@@ -1264,6 +1362,126 @@ mod tests {
             assert_eq!(remaining, expected);
             assert_eq!(remaining + stored, 150);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn sorter_routes_unmatched_and_single_bank_items() {
+        let facing = Direction::East;
+        for (weights, expected) in [
+            ([0, 0], Direction::East),
+            ([3, 0], Direction::North),
+            ([0, 4], Direction::South),
+        ] {
+            let [output, empty] = separator_outputs(facing, 16, weights, |_| false, |_| 0);
+            assert_eq!(
+                output,
+                SortOutput {
+                    direction: expected,
+                    count: 16
+                }
+            );
+            assert_eq!(empty.count, 0);
+        }
+        assert_eq!(
+            separator_weights((0..20).map(|slot| matches!(slot, 0 | 8 | 9 | 18 | 19))),
+            [2, 1]
+        );
+    }
+
+    #[test]
+    fn sorter_preserves_stack_count_and_uses_front_if_one_side_has_no_belt() {
+        for facing in DIRECTIONS {
+            let side = facing.right();
+            for count in 2..=99 {
+                for left in 1..=9 {
+                    for right in 1..=9 {
+                        let [first, second] =
+                            separator_outputs(facing, count, [left, right], |d| d == side, |_| 0);
+                        assert_eq!(first.direction, facing);
+                        assert_eq!(second.direction, side);
+                        assert_eq!(
+                            first.count,
+                            (count * left + (left + right) / 2) / (left + right)
+                        );
+                        assert_eq!(first.count + second.count, count);
+                    }
+                }
+            }
+            let [left, right] = separator_outputs(facing, u32::MAX, [9, 9], |_| false, |_| 0);
+            assert_eq!(left.direction, facing.left());
+            assert_eq!(right.direction, side);
+            assert_eq!(left.count + right.count, u32::MAX);
+        }
+    }
+
+    #[test]
+    fn sorter_single_item_has_weighted_odds_without_creating_a_second_stack() {
+        let facing = Direction::East;
+        for roll in 0..5 {
+            let [first, second] = separator_outputs(
+                facing,
+                1,
+                [2, 3],
+                |_| true,
+                |total| {
+                    assert_eq!(total, 5);
+                    roll
+                },
+            );
+            assert_eq!(
+                first.direction,
+                if roll < 2 {
+                    Direction::North
+                } else {
+                    Direction::South
+                }
+            );
+            assert_eq!((first.count, second.count), (1, 0));
+        }
+    }
+
+    #[test]
+    fn sorter_split_stays_on_the_belt_outside_vanilla_merge_reach() -> Result<(), Error> {
+        for facing in DIRECTIONS {
+            for (first, second) in [
+                (facing.left(), facing.right()),
+                (facing, facing.right()),
+                (facing.left(), facing),
+            ] {
+                let block = [-16, 1, 15];
+                let [a, b] = separator_split_positions(block, facing, first, second)
+                    .ok_or(Error::InvalidEntity)?;
+                assert_eq!(support_block(a)?, block);
+                assert_eq!(support_block(b)?, block);
+                assert!((a[0] - b[0]).abs().max((a[2] - b[2]).abs()) > 0.75);
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn sorter_targets_only_the_chosen_container_without_waiting_for_center() -> Result<(), Error> {
+        let block = [-16, 1, 15];
+        let targets = storage_targets(
+            Belt::Separator,
+            Direction::South,
+            block,
+            resting([-15.8, 1.25, 15.2]),
+            false,
+        )?;
+        assert_eq!(
+            targets,
+            [
+                Some(StorageTarget {
+                    position: [-16, 1, 16],
+                    face: StorageFace::North
+                }),
+                None,
+                None,
+                None,
+            ]
+        );
         Ok(())
     }
 

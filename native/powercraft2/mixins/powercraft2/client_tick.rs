@@ -30,6 +30,11 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
         let Some(belt) = transport::Belt::from_block(state.name.as_str()) else {
             continue;
         };
+        // The server chooses a sorting route from private filter slots and
+        // its own RNG. The client displays the normal entity tracker updates.
+        if belt == transport::Belt::Separator {
+            continue;
+        }
         let powered = if matches!(belt, transport::Belt::Brake | transport::Belt::Redirector) {
             match state.properties.get("powered").map(String::as_str) {
                 Some("true") => true,

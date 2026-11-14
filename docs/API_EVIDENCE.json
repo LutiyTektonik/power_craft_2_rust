@@ -80,6 +80,36 @@
       "mod_api": {
         "contract": "listen"
       }
+    },
+    {
+      "name": "block_entity_container",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_block_entity_container",
+      "neoforge": "Capabilities.Item.BLOCK",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "replace",
+        "out": "container"
+      }
+    },
+    {
+      "name": "screen",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_screen",
+      "mod_api": {
+        "contract": "replace",
+        "out": "screen"
+      }
+    },
+    {
+      "name": "menu_slot_rules",
+      "version": 1,
+      "target": "horizon_client_lib::menu::native_menu_slot_rules",
+      "side": "server",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "listen"
+      }
     }
   ],
   "helpers": [
@@ -215,6 +245,14 @@
     {
       "path": "crates/horizon-world/src/level/redstone.rs",
       "git_blob": "fa43fb44ae784f8c4ffef91372855da0cb6c9ae1"
+    },
+    {
+      "path": "crates/horizon-client/src/menu.rs",
+      "git_blob": "356c536d529467ffd4dbdfaee943f95441f67333"
+    },
+    {
+      "path": "crates/horizon-client/src/game/item_entities.rs",
+      "git_blob": "97027e1ea0daf257fc32adc081e9dd807535ca44"
     }
   ]
 }

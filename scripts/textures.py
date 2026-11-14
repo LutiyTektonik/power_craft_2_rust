@@ -52,6 +52,15 @@ def redirector(x, y, powered=False):
     return (156, 114, 197) if color == (245, 184, 48) else color
 
 
+def separator(x, y):
+    if 2 <= y <= 9 and 3 <= x <= 12:
+        for center, color in ((4, (242, 145, 45)), (11, (84, 203, 120))):
+            if (2 <= y <= 5 and abs(x - center) <= y - 2) or (6 <= y <= 9 and x == center):
+                return color
+    color = top(x, y)
+    return (177, 192, 208) if color == (245, 184, 48) else color
+
+
 def textures():
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
@@ -60,7 +69,8 @@ def textures():
             'detector_conveyor_top.png': png(detector),
             'detector_conveyor_powered.png': png(lambda x, y: detector(x, y, True)),
             'redirector_conveyor_top.png': png(redirector),
-            'redirector_conveyor_powered.png': png(lambda x, y: redirector(x, y, True))}
+            'redirector_conveyor_powered.png': png(lambda x, y: redirector(x, y, True)),
+            'separator_conveyor_top.png': png(separator)}
 
 
 if __name__ == '__main__':

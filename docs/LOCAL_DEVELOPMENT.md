@@ -1,6 +1,6 @@
 # Продолжение разработки на Windows 11
 
-Репозиторий: https://github.com/LutiyTektonik/power_craft_2_rust . Ветка `work/transport-detector` содержит 0.4.0. Продолжение 0.5.0 с перенаправляющей лентой ведётся локально в `work/transport-redirector`. Проверенная пользователем игровая база трёх лент — тег `powercraft2-v0.2.0-tested`.
+Репозиторий: https://github.com/LutiyTektonik/power_craft_2_rust . Ветка `work/transport-detector` содержит 0.4.0. В локальной ветке `work/transport-separator` находится 0.6.0 с двумя новыми лентами. Проверенная пользователем игровая база трёх лент — тег `powercraft2-v0.2.0-tested`.
 
 ## Окружение
 
@@ -44,7 +44,7 @@ NATIVE_NO_DEFAULT_FEATURES=1 scripts/check.sh --horizon
 python3 scripts/prepare-windows.py        # Windows test kit после сборки
 ```
 
-Последняя проверка компилирует реальный закреплённый Horizon, скачивает зависимости и может быть тяжёлой. Не считать её выполненной после одного `cargo test`. Актуальные пины находятся в `upstream.lock.json`, `compatibility.json` и `horizon-mixin.toml`; не заменять их `main`. Устанавливаемые файлы: `dist/powercraft2-0.5.0.hnmod` и `dist/powercraft2-0.5.0-content.hmod`. Копировать их из WSL в Windows можно через Проводник (`explorer.exe dist`). Установку и native rebuild выполнять по [WINDOWS11.md](WINDOWS11.md). `.hnmod` содержит исходники, а не готовую DLL. Игровые действия — [TESTING.md](TESTING.md).
+Последняя проверка компилирует реальный закреплённый Horizon, скачивает зависимости и может быть тяжёлой. Не считать её выполненной после одного `cargo test`. Актуальные пины находятся в `upstream.lock.json`, `compatibility.json` и `horizon-mixin.toml`; не заменять их `main`. Устанавливаемые файлы: `dist/powercraft2-0.6.0.hnmod` и `dist/powercraft2-0.6.0-content.hmod`. Копировать их из WSL в Windows можно через Проводник (`explorer.exe dist`). Установку и native rebuild выполнять по [WINDOWS11.md](WINDOWS11.md). `.hnmod` содержит исходники, а не готовую DLL. Игровые действия — [TESTING.md](TESTING.md).
 
 ## Резервный комплект без доступа к GitHub
 
