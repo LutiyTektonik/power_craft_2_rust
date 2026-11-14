@@ -21,10 +21,26 @@ Minecraft 26.3
 
 ## Установка и проверка
 
+Для продолжения разработки на Windows 11 используйте **WSL2 / Ubuntu 24.04** и локальный Codex в каталоге проекта. Репозиторий — https://github.com/LutiyTektonik/power_craft_2_rust , ветка — **`work/transport-detector`**. В Ubuntu установите зависимости и клонируйте историю:
+
+```sh
+sudo apt-get update
+sudo apt-get install --no-install-recommends -y git python3 curl ca-certificates build-essential rsync pkg-config libasound2-dev libudev-dev
+mkdir -p ~/src
+cd ~/src
+git -c core.autocrlf=false clone --branch work/transport-detector https://github.com/LutiyTektonik/power_craft_2_rust.git powercraft2-horizon
+cd powercraft2-horizon
+git config core.autocrlf false
+git fetch origin --tags
+```
+
+Затем выполните bootstrap и проверки ниже. Используются Rust **1.95.0**, Python **>=3.11**, Bash; ресурсы сборки загружаются заново и не входят в Git. После bootstrap в новом терминале выполните `source scripts/env.sh`. Откройте этот каталог локальным Codex внутри WSL и дайте ему прочитать **AGENTS.md**. Полная инструкция, восстановление Git bundle и состав резервного ZIP — [LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md). Проверенная в игре база трёх лент сохранена тегом `powercraft2-v0.2.0-tested`; текущая 0.4.0 требует игровой приёмки новых функций.
+
 Обновить обе части до **0.4.0**, удалить дубликаты старых версий и выполнить native rebuild в Launcher. .hnmod содержит исходники, не готовую Windows DLL/EXE. Сначала копия мира: новый detector неизвестен старым версиям. [Windows 11](docs/WINDOWS11.md).
 
 ```sh
 scripts/bootstrap.sh --install
+source scripts/env.sh
 scripts/check.sh
 scripts/build.sh
 NATIVE_NO_DEFAULT_FEATURES=1 scripts/check.sh --horizon
