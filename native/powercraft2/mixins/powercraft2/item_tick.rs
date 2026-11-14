@@ -23,9 +23,12 @@ fn powercraft2_item_tick(
     let Ok(block) = transport::support_block(position) else {
         return;
     };
-    if level.block(host, block).as_deref() != Some(transport::CONVEYOR) {
+    let Some(name) = level.block(host, block) else {
         return;
-    }
+    };
+    let Some(belt) = transport::Belt::from_block(&name) else {
+        return;
+    };
     let Some(facing) = level.block_property(host, block, "facing") else {
         return;
     };
@@ -44,7 +47,23 @@ fn powercraft2_item_tick(
     else {
         return;
     };
-    let Ok(mut next_velocity) = transport::velocity_for_tick(direction, block, motion, config)
+    let powered = if belt == transport::Belt::Brake {
+        let powered = host.neighbor_signal(dimension, block) > 0;
+        let value = if powered { "true" } else { "false" };
+        // Client neighbor_signal deliberately returns zero. Publish only a
+        // changed property on OUR brake block using UPDATE_CLIENTS (2), keeping
+        // facing and all entity data intact. No neighbour-update recursion.
+        if level.block_property(host, block, "powered").as_deref() != Some(value)
+            && !host.set_block_property_with(block, "powered", value, 2)
+        {
+            return;
+        }
+        powered
+    } else {
+        false
+    };
+    let Ok(mut next_velocity) =
+        transport::belt_velocity_for_tick(belt, direction, block, motion, config, powered)
     else {
         return;
     };

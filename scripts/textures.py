@@ -28,8 +28,22 @@ def side(x, y):
     return (shade, shade + 6, shade + 12)
 
 
+def speedy(x, y):
+    color = top(x, y)
+    return (63, 215, 242) if color == (245, 184, 48) else color
+
+
+def brake(x, y, powered=False):
+    if 2 <= x <= 13 and y in (4, 5, 10, 11):
+        return (245, 55, 45) if powered else (185, 112, 60)
+    return top(x, y)
+
+
 def textures():
-    return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side)}
+    return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
+            'speedy_conveyor_top.png': png(speedy),
+            'brake_conveyor_top.png': png(brake),
+            'brake_conveyor_powered.png': png(lambda x, y: brake(x, y, True))}
 
 
 if __name__ == '__main__':

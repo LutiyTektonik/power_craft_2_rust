@@ -47,7 +47,7 @@ def validate(root=ROOT, sources=None):
     require(re.fullmatch(r'[a-z0-9_]{1,64}', cm['id']), 'invalid mod id')
     require(cm['id'] == manifest['mod']['id'] == cargo['package']['name'] == 'powercraft2', 'id mismatch')
     require(manifest['mod']['version'] == cargo['package']['version'], 'native version mismatch')
-    require(cm['version'] == '0.1.0', 'unexpected content version; native-only hotfix keeps content unchanged')
+    require(cm['version'] == cargo['package']['version'], 'content/native release version mismatch')
     require(cm['side'] == 'both' and cm['api'] == '0.2', 'content must target both sides/API 0.2')
     require(cm['capabilities'] == ['registries'], 'unexpected capabilities')
     for key in ('horizon_revision', 'horizon_mixins_revision'):
@@ -72,6 +72,8 @@ def validate(root=ROOT, sources=None):
         require(injection['hook_version'] == available[injection['hook']]['version'], 'hook version mismatch')
         require((bundle / injection['helper']).is_file(), 'missing helper')
     for path in content.rglob('*'):
+        if path.relative_to(content).parts[0] == 'target':
+            continue  # Official cargo horizon-mod build output, never input.
         require(not path.is_symlink(), f'symlink: {path}')
         if not path.is_file() or path == content / 'horizon-mod.toml':
             continue
@@ -98,6 +100,33 @@ def validate(root=ROOT, sources=None):
     require(recipe['result'] == {'id': 'powercraft2:conveyor', 'count': 4}, 'recipe result mismatch')
     for name, data in textures().items():
         require((content / 'assets/powercraft2/textures/block' / name).read_bytes() == data, 'texture provenance mismatch')
+    for name in ('speedy_conveyor', 'brake_conveyor'):
+        definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
+        require(definition['item'] is True and definition['template'] == block['template'], 'variant registration mismatch')
+        require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
+        require(definition['shapes']['default'] == definition['collision_shapes']['default'] == shape, 'variant surface mismatch')
+        require(definition['default_state']['facing'] == 'north', 'variant default mismatch')
+        states = read_json(content / f'assets/powercraft2/blockstates/{name}.json')['variants']
+        if name == 'brake_conveyor':
+            require(definition['state_properties']['powered'] == {'type': 'boolean'}, 'invalid brake powered schema')
+            require(definition['default_state']['powered'] == 'false', 'invalid brake default power')
+            expected_states = {f'facing={d},powered={power}' for d in directions for power in ('false', 'true')}
+        else:
+            expected_states = {f'facing={d}' for d in directions}
+        require(set(states) == expected_states, 'missing variant blockstate')
+        for state, variant in states.items():
+            direction = state.split(',')[0].split('=')[1]
+            suffix = '_powered' if 'powered=true' in state else ''
+            require(variant['model'] == f'powercraft2:block/{name}{suffix}', 'wrong variant model')
+            require(variant.get('y', 0) == {'north': 0, 'east': 90, 'south': 180, 'west': 270}[direction], 'wrong variant rotation')
+            model_path = content / f'assets/powercraft2/models/block/{name}{suffix}.json'
+            require(read_json(model_path)['elements'][0]['to'] == [16, 4, 16], 'variant visual/collision mismatch')
+        recipe = read_json(content / f'data/powercraft2/recipe/{name}.json')
+        require(recipe['result']['id'] == f'powercraft2:{name}', 'variant recipe mismatch')
+        loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
+        require(loot['pools'][0]['entries'][0]['name'] == f'powercraft2:{name}', 'variant loot mismatch')
+    tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor'], 'transport tab mismatch')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:

@@ -27,9 +27,18 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
         let Some(state) = registry.state(world.block(block[0], block[1], block[2])) else {
             continue;
         };
-        if state.name.as_str() != transport::CONVEYOR {
+        let Some(belt) = transport::Belt::from_block(state.name.as_str()) else {
             continue;
-        }
+        };
+        let powered = if belt == transport::Belt::Brake {
+            match state.properties.get("powered").map(String::as_str) {
+                Some("true") => true,
+                Some("false") => false,
+                _ => continue,
+            }
+        } else {
+            false
+        };
         let Some(facing) = state.properties.get("facing") else {
             continue;
         };
@@ -41,7 +50,8 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
             velocity: [item.velocity.x, item.velocity.y, item.velocity.z],
             on_ground: item.on_ground,
         };
-        let Ok(mut velocity) = transport::velocity_for_tick(direction, block, motion, config)
+        let Ok(mut velocity) =
+            transport::belt_velocity_for_tick(belt, direction, block, motion, config, powered)
         else {
             continue;
         };

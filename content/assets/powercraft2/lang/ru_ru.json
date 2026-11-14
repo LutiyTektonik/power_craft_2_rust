@@ -1,4 +1,6 @@
 {
   "block.powercraft2.conveyor": "Конвейерная лента",
-  "itemGroup.powercraft2.transport": "PowerCraft 2: Транспорт"
+  "itemGroup.powercraft2.transport": "PowerCraft 2: Транспорт",
+  "block.powercraft2.speedy_conveyor": "Быстрая конвейерная лента",
+  "block.powercraft2.brake_conveyor": "Тормозная конвейерная лента"
 }

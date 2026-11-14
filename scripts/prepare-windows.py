@@ -63,7 +63,8 @@ def prepare(root=ROOT):
     compat = json.loads((root / 'native/powercraft2/compatibility.json').read_text())
     version = tomllib.loads((root / 'Cargo.toml').read_text())['package']['version']
     native_path = dist / f'powercraft2-{version}.hnmod'
-    content_path = dist / 'powercraft2-0.1.0-content.hmod'
+    content_version = tomllib.loads((root / 'content/horizon-mod.toml').read_text())['version']
+    content_path = dist / f'powercraft2-{content_version}-content.hmod'
     native = read_zip(native_path)
     content = read_zip(content_path)
     manifest = json.loads(native['horizon-native.json'])
@@ -91,15 +92,27 @@ def prepare(root=ROOT):
         if name == 'horizon-native.json':
             data = (json.dumps(pinned_manifest(manifest), sort_keys=True, indent=2) + '\n').encode()
         files['native-pinned/' + name] = data
-    report = 'docs/SMOOTH_MOVEMENT_VERIFICATION.json' if (root / 'docs/SMOOTH_MOVEMENT_VERIFICATION.json').exists() else 'docs/WINDOWS11_VERIFICATION.json'
+    report = 'docs/VERIFICATION.json' if (root / 'docs/VERIFICATION.json').exists() else 'docs/SMOOTH_MOVEMENT_VERIFICATION.json' if (root / 'docs/SMOOTH_MOVEMENT_VERIFICATION.json').exists() else 'docs/WINDOWS11_VERIFICATION.json'
     for source, name in [('docs/WINDOWS11.md', 'INSTALL-WINDOWS11.md'),
-                         ('docs/FEATURE_AUDIT.md', 'FEATURES.md'),
+                         ('docs/PORTING_PROGRESS.md' if (root / 'docs/PORTING_PROGRESS.md').exists() else 'docs/FEATURE_AUDIT.md', 'FEATURES.md'),
                          (report, 'VERIFICATION.json')]:
         files[name] = (root / source).read_bytes()
-    changes = root / 'docs/SMOOTH_MOVEMENT.md'
+    changes = root / 'CHANGELOG.md'
+    if not changes.exists():
+        changes = root / 'docs/SMOOTH_MOVEMENT.md'
     if changes.exists():
         files['CHANGES.md'] = changes.read_bytes()
-    if report.endswith('SMOOTH_MOVEMENT_VERIFICATION.json'):
+    for name in ['TESTING.md', 'PORTING_PROGRESS.md', 'ORIGINAL_REGISTRY.md',
+                 'ORIGINAL_MECHANICS.json', 'ORIGINAL_SOURCE_INDEX.json',
+                 'BASELINE.md', 'BASELINE_DATA.json', 'COMPATIBILITY.md', 'LEGAL.md']:
+        document = root / 'docs' / name
+        if document.exists():
+            files[name] = document.read_bytes()
+    if report == 'docs/VERIFICATION.json':
+        for log in sorted((root / 'target/verification-transport').glob('*')):
+            if log.is_file():
+                files['logs/' + log.name] = log.read_bytes()
+    elif report.endswith('SMOOTH_MOVEMENT_VERIFICATION.json'):
         for name in ['smooth-project-check.log', 'horizon-smooth-check.log',
                      'smooth-native-validation.json', 'smooth-content-validation.json']:
             log = root / 'target' / name

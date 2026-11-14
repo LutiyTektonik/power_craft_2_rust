@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "LLL",
+    "GRG"
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "G": "minecraft:gold_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:speedy_conveyor",
+    "count": 4
+  }
+}

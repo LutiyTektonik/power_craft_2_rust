@@ -3,11 +3,31 @@
 
 pub const MOD_ID: &str = "powercraft2";
 pub const CONVEYOR: &str = "powercraft2:conveyor";
+pub const SPEEDY_CONVEYOR: &str = "powercraft2:speedy_conveyor";
+pub const BRAKE_CONVEYOR: &str = "powercraft2:brake_conveyor";
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
 pub const DEFAULT_CENTERING: f64 = 0.04;
 const CONTACT_EPSILON: f64 = 1.0 / 64.0;
 const WORLD_BORDER: f64 = 30_000_000.0;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Belt {
+    Normal,
+    Speedy,
+    Brake,
+}
+
+impl Belt {
+    pub fn from_block(block: &str) -> Option<Self> {
+        match block {
+            CONVEYOR => Some(Self::Normal),
+            SPEEDY_CONVEYOR => Some(Self::Speedy),
+            BRAKE_CONVEYOR => Some(Self::Brake),
+            _ => None,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
@@ -182,6 +202,36 @@ pub fn velocity_for_tick(
             f64::from(dz) * config.speed
         },
     ])
+}
+
+// Preserve the tested normal belt exactly. Variants use the same contact and
+// tick rules on both sides; power is authoritative on the server and mirrored
+// in the brake block's own `powered` state for client prediction.
+pub fn belt_velocity_for_tick(
+    belt: Belt,
+    direction: Direction,
+    block: [i32; 3],
+    item: ItemMotion,
+    config: Config,
+    powered: bool,
+) -> Result<[f64; 3], Error> {
+    let config = match belt {
+        Belt::Normal => config,
+        Belt::Speedy => Config::new(config.speed * 2.0, config.centering)?,
+        Belt::Brake => Config::new(config.speed * 0.6, config.centering)?,
+    };
+    let driven = velocity_for_tick(direction, block, item, config)?;
+    if belt == Belt::Brake && powered {
+        // No belt thrust while powered. Vanilla friction/collisions run first;
+        // damp the remaining horizontal velocity, keeping gravity/pickup intact.
+        Ok([
+            item.velocity[0] * 0.6,
+            item.velocity[1],
+            item.velocity[2] * 0.6,
+        ])
+    } else {
+        Ok(driven)
+    }
 }
 
 #[cfg(test)]
@@ -492,6 +542,235 @@ mod tests {
             [-17, -64, 0]
         );
         assert!(next_support_block([0.5, 0.25, 0.5], [f64::NAN, 0.0, 0.0]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn variants_accept_only_our_registered_block_ids() {
+        assert_eq!(Belt::from_block(CONVEYOR), Some(Belt::Normal));
+        assert_eq!(Belt::from_block(SPEEDY_CONVEYOR), Some(Belt::Speedy));
+        assert_eq!(Belt::from_block(BRAKE_CONVEYOR), Some(Belt::Brake));
+        for foreign in [
+            "minecraft:conveyor",
+            "other:speedy_conveyor",
+            "",
+            "powercraft2:conveyor_extra",
+        ] {
+            assert_eq!(Belt::from_block(foreign), None);
+        }
+    }
+
+    #[test]
+    fn normal_variant_preserves_tested_calculation_exactly() -> Result<(), Error> {
+        for x in [-16.01, -0.01, 0.0, 0.1, 0.5, 0.99, 16.0] {
+            for direction in DIRECTIONS {
+                for powered in [false, true] {
+                    let item = resting([x, 0.25, 0.4]);
+                    let block = support_block(item.position)?;
+                    assert_eq!(
+                        belt_velocity_for_tick(
+                            Belt::Normal,
+                            direction,
+                            block,
+                            item,
+                            Config::default(),
+                            powered
+                        )?,
+                        velocity_for_tick(direction, block, item, Config::default())?
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn speedy_and_unpowered_brake_match_original_speed_ratios() -> Result<(), Error> {
+        for direction in DIRECTIONS {
+            let item = resting([0.5, 0.25, 0.5]);
+            let d = direction.vector();
+            for (belt, ratio) in [(Belt::Speedy, 2.0), (Belt::Brake, 0.6)] {
+                let v = belt_velocity_for_tick(
+                    belt,
+                    direction,
+                    [0; 3],
+                    item,
+                    Config::default(),
+                    false,
+                )?;
+                assert_eq!(
+                    v,
+                    [
+                        f64::from(d[0]) * 0.1 * ratio,
+                        item.velocity[1],
+                        f64::from(d[2]) * 0.1 * ratio
+                    ]
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn powered_brake_damps_both_axes_without_belt_thrust_or_vertical_changes() -> Result<(), Error>
+    {
+        let mut item = resting([0.5, 0.25, 0.5]);
+        item.velocity = [-0.2, -0.03, 0.1];
+        for direction in DIRECTIONS {
+            assert_eq!(
+                belt_velocity_for_tick(
+                    Belt::Brake,
+                    direction,
+                    [0; 3],
+                    item,
+                    Config::default(),
+                    true
+                )?,
+                [-0.12, -0.03, 0.06]
+            );
+        }
+        item.velocity = [0.0; 3];
+        assert_eq!(
+            belt_velocity_for_tick(
+                Belt::Brake,
+                Direction::East,
+                [0; 3],
+                item,
+                Config::default(),
+                true
+            )?,
+            [0.0; 3]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn powered_brake_stops_incoming_item_and_restarts_after_signal_removal() -> Result<(), Error> {
+        let mut item = moving(Direction::East)?;
+        let start = item.position[0];
+        for _ in 0..100 {
+            flat_physics_tick(&mut item);
+            let block = support_block(item.position)?;
+            item.velocity = belt_velocity_for_tick(
+                Belt::Brake,
+                Direction::East,
+                block,
+                item,
+                Config::default(),
+                true,
+            )?;
+        }
+        assert!(item.velocity[0].abs() < 1.0e-20);
+        assert!(item.position[0] - start > 0.1 && item.position[0] - start < 0.16);
+        let block = support_block(item.position)?;
+        item.velocity = belt_velocity_for_tick(
+            Belt::Brake,
+            Direction::East,
+            block,
+            item,
+            Config::default(),
+            false,
+        )?;
+        let before = item.position[0];
+        flat_physics_tick(&mut item);
+        assert!((item.position[0] - before - 0.06).abs() < 1.0e-10);
+        Ok(())
+    }
+
+    #[test]
+    fn variants_share_contact_validation_and_reject_corrupt_motion() {
+        for belt in [Belt::Normal, Belt::Speedy, Belt::Brake] {
+            for powered in [false, true] {
+                let mut item = resting([0.5, 0.25, 0.5]);
+                item.on_ground = false;
+                assert_eq!(
+                    belt_velocity_for_tick(
+                        belt,
+                        Direction::East,
+                        [0; 3],
+                        item,
+                        Config::default(),
+                        powered
+                    ),
+                    Err(Error::NotOnSurface)
+                );
+                item.on_ground = true;
+                item.velocity[2] = f64::NAN;
+                assert_eq!(
+                    belt_velocity_for_tick(
+                        belt,
+                        Direction::East,
+                        [0; 3],
+                        item,
+                        Config::default(),
+                        powered
+                    ),
+                    Err(Error::InvalidEntity)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn variants_predict_identically_through_power_transitions_and_tick_batches() -> Result<(), Error>
+    {
+        for belt in [Belt::Normal, Belt::Speedy, Belt::Brake] {
+            for direction in DIRECTIONS {
+                for fps in [5, 17, 30, 60, 144] {
+                    let mut server = moving(direction)?;
+                    let mut client = server;
+                    let mut tick = 0;
+                    for frame in 1..=fps * 10 {
+                        while tick < frame * 20 / fps {
+                            let powered = (40..120).contains(&tick);
+                            for item in [&mut server, &mut client] {
+                                flat_physics_tick(item);
+                                let block = support_block(item.position)?;
+                                item.velocity = belt_velocity_for_tick(
+                                    belt,
+                                    direction,
+                                    block,
+                                    *item,
+                                    Config::default(),
+                                    powered,
+                                )?;
+                            }
+                            assert_eq!(server.position, client.position);
+                            assert_eq!(server.velocity, client.velocity);
+                            tick += 1;
+                        }
+                    }
+                    assert_eq!(tick, 200);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn mixed_line_changes_speed_without_position_setters() -> Result<(), Error> {
+        let mut item = moving(Direction::East)?;
+        let mut seen = [false; 3];
+        for _ in 0..150 {
+            flat_physics_tick(&mut item);
+            let block = support_block(item.position)?;
+            let (index, belt, speed) = match block[0] {
+                i32::MIN..=3 => (0, Belt::Normal, 0.1),
+                4..=7 => (1, Belt::Speedy, 0.2),
+                _ => (2, Belt::Brake, 0.06),
+            };
+            seen[index] = true;
+            item.velocity = belt_velocity_for_tick(
+                belt,
+                Direction::East,
+                block,
+                item,
+                Config::default(),
+                false,
+            )?;
+            assert_eq!(item.velocity[0], speed);
+        }
+        assert_eq!(seen, [true; 3]);
         Ok(())
     }
 }

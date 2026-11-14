@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-14",
+  "native_version": "0.2.0",
+  "content_version": "0.2.0",
+  "horizon": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
+  "horizon_mixins": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+  "game": "26.3",
+  "rust": "1.95.0",
+  "baseline": {
+    "tag": "powercraft2-v0.1.1-tested",
+    "code_commit": "612156a9330d6c41aa1b71a568e8722cec2404e7",
+    "confirmed_by_user": "Обычная лента размещается и плавно перемещает предметы; подтверждение в приложенном задании. Это не приёмка новых лент 0.2.0."
+  },
+  "checks": {
+    "project": {
+      "command": "scripts/check.sh",
+      "status": "passed",
+      "rust_tests": 25,
+      "python_tests": 22,
+      "cargo_fmt": "passed",
+      "rustfmt_helpers": "passed",
+      "clippy_all_targets_D_warnings": "passed",
+      "log": "logs/project-check.log"
+    },
+    "horizon": {
+      "command": "python3 native/tools/native.py check powercraft2",
+      "status": "passed",
+      "environment": {
+        "NATIVE_NO_DEFAULT_FEATURES": "1",
+        "CARGO_NET_OFFLINE": "true"
+      },
+      "details": "Официальный Mixins + cargo check -p horizon-client --bin horizon-client --locked --no-default-features -j2, RUSTFLAGS=-D warnings, настоящий Linux-клиент. Не Windows exe и не запуск Minecraft.",
+      "log": "logs/horizon-check.log"
+    },
+    "content_build": {
+      "command": "cargo horizon-mod build",
+      "directory": "content",
+      "status": "passed",
+      "log": "logs/content-build.log"
+    },
+    "native_package": {
+      "command": "python3 native/tools/native.py package powercraft2",
+      "status": "passed",
+      "postprocessing": "Удалено только необязательное hooks из дескриптора для строгого Horizon pin. Rust-payload совпадает с официальным исходным bundle."
+    },
+    "native_validation": {
+      "ok": true,
+      "report": {
+        "api": "native-1/9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0/e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+        "api_level": null,
+        "capabilities": [],
+        "game": "26.3",
+        "id": "powercraft2",
+        "kind": "native-mod",
+        "requires": [],
+        "sha256": "aec233133001b76fbfab9b7a8f6e0a0e999cecf6d8350a4f2ce560e5531b315d",
+        "side": null,
+        "signed": false,
+        "size": 10691,
+        "version": "0.2.0"
+      }
+    },
+    "content_validation": {
+      "ok": true,
+      "report": {
+        "api": "0.2",
+        "api_level": null,
+        "capabilities": [
+          "registries"
+        ],
+        "game": null,
+        "id": "powercraft2",
+        "kind": "mod",
+        "requires": [],
+        "sha256": "a94ca56544b5c7c8a654469ba85cf018bc8426e4e6fd9a45a75ebe9142a82138",
+        "side": "both",
+        "signed": false,
+        "size": 10336,
+        "version": "0.2.0"
+      }
+    },
+    "horizon_source_audit": {
+      "status": "passed",
+      "verified_files": 9
+    },
+    "original_source_inventory": {
+      "status": "passed",
+      "verified_files": 445,
+      "java_files": 427,
+      "registered_objects_including_services": 62,
+      "recipe_declarations_including_modes": 177,
+      "gui_container_widget_classes": 78
+    },
+    "normal_content_regression": {
+      "status": "passed",
+      "byte_identical_files": 8,
+      "evidence": "BASELINE_DATA.json"
+    },
+    "core_release_build": {
+      "command": "cargo build --release --locked --offline",
+      "status": "passed",
+      "scope": "Независимая Rust-библиотека, не исполняемая игра Windows",
+      "log": "logs/core-release-build.log"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "dist/powercraft2-0.2.0.hnmod",
+      "bytes": 10691,
+      "sha256": "aec233133001b76fbfab9b7a8f6e0a0e999cecf6d8350a4f2ce560e5531b315d"
+    },
+    {
+      "path": "dist/powercraft2-0.2.0-content.hmod",
+      "bytes": 10336,
+      "sha256": "a94ca56544b5c7c8a654469ba85cf018bc8426e4e6fd9a45a75ebe9142a82138"
+    }
+  ],
+  "limitations": [
+    "Игровая приёмка 0.2.0 в Windows/Minecraft не выполнена",
+    "Реальные FPS/TPS под нагрузкой и LAN не измерены",
+    "Powered тормозной ленты обновляется при обработке предмета; пустая лента может отображать прежнее состояние",
+    "Передача в инвентарь, детектор/сортировщик/подъёмник и прочий Transport ещё не перенесены",
+    "Модельные тесты FPS/нагрузки не заменяют игру",
+    "Полный мод ещё не завершён"
+  ],
+  "update": "Обновить обе части до 0.2.0 и пересобрать native в Launcher. Для испытаний копия мира; старый content не знает новые ID.",
+  "git": "Локальная ветка work/transport-expansion, отдельные коммиты и тег проверенной базы. Origin не настроен; push/PR не выполнены. GitHub-коннектор повторно вернул пустой список доступных репозиториев."
+}

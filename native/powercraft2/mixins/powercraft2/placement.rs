@@ -6,7 +6,12 @@ fn powercraft2_placement(
 ) {
     use crate::game::powercraft2_transport as transport;
 
-    if answer.is_some() || level.native_state_block(state) != Some(transport::CONVEYOR) {
+    if answer.is_some()
+        || level
+            .native_state_block(state)
+            .and_then(transport::Belt::from_block)
+            .is_none()
+    {
         return;
     }
     let Ok(direction) = transport::Direction::from_yaw(context.yaw) else {

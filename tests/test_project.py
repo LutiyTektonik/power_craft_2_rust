@@ -87,7 +87,7 @@ class ProjectTests(unittest.TestCase):
     def test_native_archive_reproducibility_and_pins(self):
         command = [sys.executable, str(self.root / 'native/tools/native.py'), 'package', 'powercraft2']
         subprocess.run(command, check=True, capture_output=True)
-        out = self.root / 'native/target/powercraft2-0.1.1.hnmod'
+        out = self.root / 'native/target/powercraft2-0.2.0.hnmod'
         first = out.read_bytes()
         subprocess.run(command, check=True, capture_output=True)
         self.assertEqual(out.read_bytes(), first)
@@ -118,8 +118,8 @@ class ProjectTests(unittest.TestCase):
         package_content(self.root)
         subprocess.run([sys.executable, str(self.root / 'native/tools/native.py'),
                         'package', 'powercraft2'], check=True, capture_output=True)
-        shutil.copyfile(self.root / 'native/target/powercraft2-0.1.1.hnmod',
-                        self.root / 'dist/powercraft2-0.1.1.hnmod')
+        shutil.copyfile(self.root / 'native/target/powercraft2-0.2.0.hnmod',
+                        self.root / 'dist/powercraft2-0.2.0.hnmod')
 
     def test_windows_kit_preserves_code_and_both_strict_pins(self):
         self.windows_packages()
@@ -128,10 +128,10 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(windows_kit.prepare(self.root).read_bytes(), first)
         with zipfile.ZipFile(out) as archive:
             descriptor = json.loads(archive.read('native-pinned/horizon-native.json'))
-            original = json.loads(windows_kit.read_zip(self.root / 'dist/powercraft2-0.1.1.hnmod')['horizon-native.json'])
+            original = json.loads(windows_kit.read_zip(self.root / 'dist/powercraft2-0.2.0.hnmod')['horizon-native.json'])
             self.assertNotIn('hooks', descriptor)
             self.assertEqual(descriptor, {k: v for k, v in original.items() if k != 'hooks'})
-            for name, data in windows_kit.read_zip(self.root / 'dist/powercraft2-0.1.1.hnmod').items():
+            for name, data in windows_kit.read_zip(self.root / 'dist/powercraft2-0.2.0.hnmod').items():
                 if name != 'horizon-native.json':
                     self.assertEqual(archive.read('native-pinned/' + name), data)
             for line in archive.read('SHA256SUMS.txt').decode().splitlines():
@@ -154,7 +154,7 @@ class ProjectTests(unittest.TestCase):
 
     def test_distribution_native_archive_is_strictly_pinned_without_code_changes(self):
         self.windows_packages()
-        original = windows_kit.read_zip(self.root / 'native/target/powercraft2-0.1.1.hnmod')
+        original = windows_kit.read_zip(self.root / 'native/target/powercraft2-0.2.0.hnmod')
         out = windows_kit.pin_native(self.root)
         first = out.read_bytes()
         self.assertEqual(windows_kit.pin_native(self.root).read_bytes(), first)
@@ -172,6 +172,29 @@ class ProjectTests(unittest.TestCase):
         end = text.index('[[injection]]', start + len('[[injection]]'))
         p.write_text(text[:start] + text[end:])
         with self.assertRaisesRegex(audit.AuditError, 'unexpected hooks'):
+            audit.validate(self.root)
+
+    def test_game_tested_normal_belt_content_stays_byte_identical(self):
+        baseline = json.loads((self.root / 'docs/BASELINE_DATA.json').read_text())
+        for name, digest in baseline['unchanged_content_sha256'].items():
+            self.assertEqual(hashlib.sha256((self.root / name).read_bytes()).hexdigest(), digest, name)
+
+    def test_brake_requires_both_power_states_for_all_four_directions(self):
+        self.change_json('content/assets/powercraft2/blockstates/brake_conveyor.json',
+                         lambda d: d['variants'].pop('facing=west,powered=true'))
+        with self.assertRaisesRegex(audit.AuditError, 'missing variant blockstate'):
+            audit.validate(self.root)
+
+    def test_brake_power_schema_cannot_silently_change_save_format(self):
+        self.change_json('content/data/powercraft2/horizon/block/brake_conveyor.json',
+                         lambda d: d['state_properties'].update(powered={'type': 'integer', 'min': 0, 'max': 1}))
+        with self.assertRaisesRegex(audit.AuditError, 'invalid brake powered schema'):
+            audit.validate(self.root)
+
+    def test_speedy_drops_itself_instead_of_normal_conveyor(self):
+        self.change_json('content/data/powercraft2/loot_table/blocks/speedy_conveyor.json',
+                         lambda d: d['pools'][0]['entries'][0].update(name='powercraft2:conveyor'))
+        with self.assertRaisesRegex(audit.AuditError, 'variant loot mismatch'):
             audit.validate(self.root)
 
 

@@ -21,15 +21,16 @@ cargo test --workspace --locked --offline
 if [[ "$mode" == --horizon ]]; then
     command -v rsync >/dev/null || { echo 'Для native.py check нужен rsync' >&2; exit 1; }
     command -v cargo-horizon-mod >/dev/null || { echo 'Для проверки .hmod нужен cargo-horizon-mod' >&2; exit 1; }
-    pc2_require_horizon_space
+    pc2_require_horizon_space check
     # Downloads pinned source, stages with official Mixins, checks the real game.
     python3 native/tools/native.py check powercraft2
     python3 native/tools/native.py package powercraft2
     python3 scripts/prepare-windows.py --native-only
     (cd content && cargo horizon-mod build)
     mkdir -p dist
-    cp content/target/horizon-mod/powercraft2.hmod dist/powercraft2-0.1.0-content.hmod
-    cargo horizon-mod check dist/powercraft2-0.1.0-content.hmod
+    content_version="$(python3 -c 'import tomllib; print(tomllib.load(open("content/horizon-mod.toml", "rb"))["version"])')"
+    cp content/target/horizon-mod/powercraft2.hmod "dist/powercraft2-${content_version}-content.hmod"
+    cargo horizon-mod check "dist/powercraft2-${content_version}-content.hmod"
     native_version="$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
     cargo horizon-mod check "dist/powercraft2-${native_version}.hnmod"
 fi

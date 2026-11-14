@@ -1,5 +1,9 @@
 {
   "title": "itemGroup.powercraft2.transport",
   "icon": "powercraft2:conveyor",
-  "items": ["powercraft2:conveyor"]
+  "items": [
+    "powercraft2:conveyor",
+    "powercraft2:speedy_conveyor",
+    "powercraft2:brake_conveyor"
+  ]
 }

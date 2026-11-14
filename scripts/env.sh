@@ -16,12 +16,15 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 export CARGO_INCREMENTAL=0
 
 pc2_require_horizon_space() {
-    python3 - "$PC2_ROOT" <<'PY'
+    python3 - "$PC2_ROOT" "${1:-build}" <<'PY'
 import shutil
 import sys
+from pathlib import Path
 free = shutil.disk_usage(sys.argv[1]).free
-minimum = 6 * 1024**3
+warm_check = sys.argv[2] == 'check' and (Path(sys.argv[1]) / 'native/target/cargo/debug/deps').is_dir()
+minimum_gib = 3 if warm_check else 6
+minimum = minimum_gib * 1024**3
 if free < minimum:
-    sys.exit('Для полной проверки Horizon оставьте не менее 6 ГиБ свободного диска; сборка не начата.')
+    sys.exit(f'Для Horizon требуется не менее {minimum_gib} ГиБ свободного диска; операция не начата.')
 PY
 }

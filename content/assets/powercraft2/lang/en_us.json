@@ -1,4 +1,6 @@
 {
   "block.powercraft2.conveyor": "Conveyor Belt",
-  "itemGroup.powercraft2.transport": "PowerCraft 2: Transport"
+  "itemGroup.powercraft2.transport": "PowerCraft 2: Transport",
+  "block.powercraft2.speedy_conveyor": "Speedy Conveyor",
+  "block.powercraft2.brake_conveyor": "Brake Conveyor"
 }

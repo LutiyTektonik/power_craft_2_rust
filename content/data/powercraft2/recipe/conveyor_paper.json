@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PPP",
+    "IRI"
+  ],
+  "key": {
+    "P": "minecraft:paper",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:conveyor",
+    "count": 1
+  }
+}
