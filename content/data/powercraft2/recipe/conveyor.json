@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["LLL", "IRI"],
+  "key": { "L": "minecraft:leather", "I": "minecraft:iron_ingot", "R": "minecraft:redstone" },
+  "result": { "id": "powercraft2:conveyor", "count": 4 }
+}

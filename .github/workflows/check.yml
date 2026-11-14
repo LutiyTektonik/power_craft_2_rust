@@ -1,0 +1,52 @@
+name: Проверки PowerCraft 2 Horizon
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full_horizon:
+        description: 'Скачать закреплённый Horizon и проверить настоящую интеграцию'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Закреплённый stable Rust
+        run: rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
+      - name: Официальные внешние инструменты по точному commit
+        run: python3 scripts/fetch-tools.py --download
+      - name: Форматирование, Clippy, тесты и структура
+        run: scripts/check.sh
+      - name: Упаковка и проверка воспроизводимости исходных архивов
+        run: scripts/build.sh --source-only
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-prototype-not-game-validated
+          path: dist/
+
+  horizon:
+    if: github.event_name == 'workflow_dispatch' && inputs.full_horizon
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      NATIVE_NO_DEFAULT_FEATURES: '1'
+      CARGO_BUILD_JOBS: '2'
+      CARGO_INCREMENTAL: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Системные библиотеки для настоящей проверки движка
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y rsync pkg-config libasound2-dev libudev-dev
+      - name: Инструменты с точными ревизиями
+        run: scripts/bootstrap.sh --install
+      - name: Компиляция интеграции и официальная проверка архивов
+        run: scripts/check.sh --horizon

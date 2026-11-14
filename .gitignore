@@ -3,6 +3,9 @@
 /.tools/
 /.cache/
 /dist/
+/content/target/
+/native/tools/native.py
+/native/tools/game.py
 __pycache__/
 *.pyc
 .env

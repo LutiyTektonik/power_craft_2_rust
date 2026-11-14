@@ -37,8 +37,6 @@ impl std::fmt::Display for Error {
 impl std::error::Error for Error {}
 
 impl Direction {
-    pub const ALL: [Self; 4] = [Self::North, Self::East, Self::South, Self::West];
-
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::North => "north",
@@ -180,6 +178,13 @@ pub fn velocity_for_tick(
 mod tests {
     use super::*;
 
+    const DIRECTIONS: [Direction; 4] = [
+        Direction::North,
+        Direction::East,
+        Direction::South,
+        Direction::West,
+    ];
+
     fn resting(position: [f64; 3]) -> ItemMotion {
         ItemMotion {
             position,
@@ -190,7 +195,7 @@ mod tests {
 
     #[test]
     fn direction_state_round_trip_and_unknown_values() -> Result<(), Error> {
-        for direction in Direction::ALL {
+        for direction in DIRECTIONS {
             assert_eq!(Direction::try_from(direction.as_str())?, direction);
         }
         for invalid in ["", "North", "up", "south\0", "powercraft2:east"] {
@@ -219,7 +224,7 @@ mod tests {
     #[test]
     fn all_directions_preserve_vertical_motion() -> Result<(), Error> {
         let item = resting([0.5, 0.25, 0.5]);
-        for direction in Direction::ALL {
+        for direction in DIRECTIONS {
             let v = velocity_for_tick(direction, [0; 3], item, Config::default())?;
             let d = direction.vector();
             assert_eq!(v, [f64::from(d[0]) * 0.1, -0.02, f64::from(d[2]) * 0.1]);
@@ -334,7 +339,8 @@ mod tests {
                 let saved_facing = Direction::East.as_str();
                 let loaded_direction = Direction::try_from(saved_facing)?;
                 let block = support_block(item.position)?;
-                item.velocity = velocity_for_tick(loaded_direction, block, item, Config::default())?;
+                item.velocity =
+                    velocity_for_tick(loaded_direction, block, item, Config::default())?;
                 item.position[0] += item.velocity[0];
             }
             Ok(item.position)

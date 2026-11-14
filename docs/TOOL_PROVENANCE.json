@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/horizon-rust/horizon-mods",
+  "revision": "656f948e0d058d647676857625da3d4b66755929",
+  "files": [
+    {
+      "path": "native/tools/game.py",
+      "git_blob": "2e251e13fa353ada16616f96e240e08b20e2a7b3"
+    },
+    {
+      "path": "native/tools/native.py",
+      "git_blob": "d623f7ba68a308d813f75089284942e4b3f973f5"
+    }
+  ]
+}
+

@@ -1,0 +1,124 @@
+{
+  "horizon_revision": "f4d8d62c31ec2b08046faded7bef1b476783f319",
+  "hooks": [
+    {
+      "name": "state_for_placement",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::GameLevel<'_>::native_state_for_placement",
+      "mod_api": {
+        "contract": "replace",
+        "out": "answer"
+      }
+    },
+    {
+      "name": "entity_tick_post",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_entity_tick_post",
+      "neoforge": "EntityTickEvent.Post",
+      "side": "server",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "entity_tick_listened",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_entity_tick_listened",
+      "side": "server",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "collect",
+        "out": "listened"
+      }
+    }
+  ],
+  "helpers": [
+    {
+      "name": "on",
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_on"
+    },
+    {
+      "name": "entity",
+      "target": "horizon_client::game::native_entity_refs::Game<'_>::native_entity"
+    },
+    {
+      "name": "level",
+      "target": "horizon_client::game::native_entity_refs::Game<'_>::native_level"
+    },
+    {
+      "name": "entity_position",
+      "target": "horizon_client::game::native_entity_refs::Game<'_>::native_entity_position",
+      "receiver": "entity"
+    },
+    {
+      "name": "entity_velocity",
+      "target": "horizon_client::game::native_entity_motion::Game<'_>::native_entity_velocity",
+      "receiver": "entity"
+    },
+    {
+      "name": "entity_set_velocity",
+      "target": "horizon_client::game::native_entity_motion::Game<'_>::native_entity_set_velocity",
+      "receiver": "entity"
+    },
+    {
+      "name": "entity_on_ground",
+      "target": "horizon_client::game::native_entity_motion::Game<'_>::native_entity_on_ground",
+      "receiver": "entity"
+    },
+    {
+      "name": "level_block",
+      "target": "horizon_client::game::native_level_refs::Game<'_>::native_level_block",
+      "receiver": "level"
+    },
+    {
+      "name": "level_block_property",
+      "target": "horizon_client::game::native_level_refs::Game<'_>::native_level_block_property",
+      "receiver": "level"
+    },
+    {
+      "name": "level_is_loaded",
+      "target": "horizon_client::game::native_level_refs::Game<'_>::native_level_is_loaded",
+      "receiver": "level"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "crates/horizon-client/src/game.rs",
+      "git_blob": "16db63d3f0904ca4301770282e347d67e58582fd"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_hooks.rs",
+      "git_blob": "1fd052a847ffec8b316adabbae8d5081238f6e34"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_entity_refs.rs",
+      "git_blob": "8504760b863efc8dde06777fdc0f14cbf39f62b2"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_entity_motion.rs",
+      "git_blob": "57b9d84978e971a15370a9c8f9e65c660e4c775f"
+    },
+    {
+      "path": "crates/horizon-client/src/game/native_level_refs.rs",
+      "git_blob": "6e4214fd0010f516e2c24a00c89c98fc869bb769"
+    },
+    {
+      "path": "crates/horizon-client/src/mod_api.rs",
+      "git_blob": "3e775420f4ff0c800ea251b64790d3566eb12358"
+    },
+    {
+      "path": "crates/horizon-world/src/level/place.rs",
+      "git_blob": "42a99b3e9b14a5d2463c6518a7df0bc496fdcb2e"
+    },
+    {
+      "path": "crates/horizon-mods/src/content.rs",
+      "git_blob": "047f385c29f29a3466573ba739c4788131351b9e"
+    },
+    {
+      "path": "crates/horizon-mods/src/index/native.rs",
+      "git_blob": "bf8a4b99bc4d28411d7660df7825e7d0386ffde0"
+    }
+  ]
+}
+
