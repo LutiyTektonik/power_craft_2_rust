@@ -10,4 +10,4 @@
 
 Файлы: dist/powercraft2-0.4.0.hnmod, dist/powercraft2-0.4.0-content.hmod, dist/powercraft2-windows11-test-kit.zip. Отдельные пакеты Speedy 0.3.1 тоже созданы, но итоговая 0.4.0 уже включает исправление. Полный мод не завершён; следующая механика — перенаправляющая лента. Незавершённые оригинальные модули остаются отложенными.
 
-Точные результаты — VERIFICATION.json, SPEEDY_VERIFICATION.json. Приёмка — TESTING.md/WINDOWS11.md, ограничения — DETECTOR.md/COMPATIBILITY.md. Ветка work/transport-detector, изменения сохраняются отдельными коммитами. Origin не настроен, GitHub push/PR не выполнены.
+Точные результаты — VERIFICATION.json, SPEEDY_VERIFICATION.json. Приёмка — TESTING.md/WINDOWS11.md, ограничения — DETECTOR.md/COMPATIBILITY.md. Ветка work/transport-detector, изменения сохраняются отдельными коммитами. Origin настроен на LutiyTektonik/power_craft_2_rust. Подключённый LutiyTektonik-dev имеет pull=true/push=false; GitHub push/PR не выполнены. Подробности — GITHUB_SYNC.md.

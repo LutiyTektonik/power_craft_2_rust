@@ -142,5 +142,5 @@
     "Модельные тесты не заменяют игру; полный перенос ещё не завершён"
   ],
   "update": "Обновить обе части 0.4.0 и выполнить native rebuild. Для rollback мира с новым detector нужна подходящая копия. Пины прежние.",
-  "git": "Рабочая ветка work/transport-detector. Speedy и detector сохраняются отдельными коммитами. Origin отсутствует, push/PR не выполнены."
+  "git": "Ветка work/transport-detector. Origin настроен на https://github.com/LutiyTektonik/power_craft_2_rust.git. Коннектор LutiyTektonik-dev имеет pull=true/push=false; CLI-авторизация не прошла проверку. Push/PR не выполнены; удалённые ветки не изменены."
 }
