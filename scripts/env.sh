@@ -11,3 +11,14 @@ if [[ -d "$PC2_ROOT/.tools/usr/bin" ]]; then
 fi
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 export CARGO_INCREMENTAL=0
+
+pc2_require_horizon_space() {
+    python3 - "$PC2_ROOT" <<'PY'
+import shutil
+import sys
+free = shutil.disk_usage(sys.argv[1]).free
+minimum = 6 * 1024**3
+if free < minimum:
+    sys.exit('Для полной проверки Horizon оставьте не менее 6 ГиБ свободного диска; сборка не начата.')
+PY
+}

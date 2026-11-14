@@ -21,6 +21,7 @@ cargo test --workspace --locked --offline
 if [[ "$mode" == --horizon ]]; then
     command -v rsync >/dev/null || { echo 'Для native.py check нужен rsync' >&2; exit 1; }
     command -v cargo-horizon-mod >/dev/null || { echo 'Для проверки .hmod нужен cargo-horizon-mod' >&2; exit 1; }
+    pc2_require_horizon_space
     # Downloads pinned source, stages with official Mixins, checks the real game.
     python3 native/tools/native.py check powercraft2
     python3 scripts/package.py

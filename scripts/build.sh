@@ -22,5 +22,6 @@ command -v cargo-horizon-mod >/dev/null || { echo 'Нет официальног
 cargo horizon-mod check dist/powercraft2-0.1.0-content.hmod
 cargo horizon-mod check dist/powercraft2-0.1.0.hnmod
 if [[ "$mode" == --horizon ]]; then
+    pc2_require_horizon_space
     python3 native/tools/native.py build powercraft2
 fi

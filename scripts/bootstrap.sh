@@ -37,6 +37,14 @@ if command -v rustup >/dev/null; then
         [[ "$install" == 1 ]] || { echo 'Нет закреплённого stable Rust 1.95.0' >&2; exit 1; }
         rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
     fi
+    if [[ "$install" == 1 ]]; then
+        if ! cargo fmt --version >/dev/null 2>&1; then
+            rustup component add --toolchain 1.95.0 rustfmt
+        fi
+        if ! cargo clippy --version >/dev/null 2>&1; then
+            rustup component add --toolchain 1.95.0 clippy
+        fi
+    fi
 fi
 rustc --version
 cargo --version
@@ -58,5 +66,6 @@ if [[ "$install" == 1 ]] && ! command -v cargo-horizon-mod >/dev/null; then
     # Dedicated Cargo target prevents a tools install from bloating the source tree.
     CARGO_TARGET_DIR="$PC2_ROOT/.cache/tool-build" cargo install --locked \
         --git https://github.com/horizon-rust/horizon --rev "$revision" cargo-horizon-mod
+    rm -rf -- "$PC2_ROOT/.cache/tool-build"
 fi
 echo 'Базовые инструменты доступны. Скрипт не загружает ресурсы Minecraft и не собирает игру.'
