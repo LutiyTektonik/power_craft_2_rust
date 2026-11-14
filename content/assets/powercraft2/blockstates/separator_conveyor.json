@@ -14,6 +14,12 @@
     "facing=west": {
       "model": "powercraft2:block/separator_conveyor",
       "y": 270
+    },
+    "facing=up": {
+      "model": "powercraft2:block/separator_conveyor"
+    },
+    "facing=down": {
+      "model": "powercraft2:block/separator_conveyor"
     }
   }
 }

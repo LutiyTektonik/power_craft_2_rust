@@ -108,7 +108,11 @@ def validate(root=ROOT, sources=None):
         definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
         template = 'minecraft:barrel' if name == 'separator_conveyor' else block['template']
         require(definition['item'] is True and definition['template'] == template, 'variant registration mismatch')
-        require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
+        if name == 'separator_conveyor':
+            require('facing' not in definition.get('state_properties', {}),
+                    'separator inherits facing from the barrel template')
+        else:
+            require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
         require(definition['shapes']['default'] == definition['collision_shapes']['default'] == shape, 'variant surface mismatch')
         require(definition['default_state']['facing'] == 'north', 'variant default mismatch')
         states = read_json(content / f'assets/powercraft2/blockstates/{name}.json')['variants']
@@ -119,12 +123,14 @@ def validate(root=ROOT, sources=None):
             expected_states = {f'facing={d},powered={power}' for d in directions for power in ('false', 'true')}
         else:
             expected_states = {f'facing={d}' for d in directions}
+        if name == 'separator_conveyor':
+            expected_states |= {'facing=up', 'facing=down'}
         require(set(states) == expected_states, 'missing variant blockstate')
         for state, variant in states.items():
             direction = state.split(',')[0].split('=')[1]
             suffix = '_powered' if 'powered=true' in state else ''
             require(variant['model'] == f'powercraft2:block/{name}{suffix}', 'wrong variant model')
-            require(variant.get('y', 0) == {'north': 0, 'east': 90, 'south': 180, 'west': 270}[direction], 'wrong variant rotation')
+            require(variant.get('y', 0) == {'north': 0, 'east': 90, 'south': 180, 'west': 270, 'up': 0, 'down': 0}[direction], 'wrong variant rotation')
             model_path = content / f'assets/powercraft2/models/block/{name}{suffix}.json'
             require(read_json(model_path)['elements'][0]['to'] == [16, 4, 16], 'variant visual/collision mismatch')
         recipe = read_json(content / f'data/powercraft2/recipe/{name}.json')

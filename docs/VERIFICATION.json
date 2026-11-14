@@ -53,6 +53,43 @@
       "status": "passed",
       "unchanged_content_files": 45,
       "additive_catalog_files": 3
+    },
+    "windows_gameplay": {
+      "status": "passed",
+      "build": "native-9f42064-b3676ac60aad",
+      "instance": "PowerCraft2-060-Test",
+      "world": "PowerCraft2-060-Acceptance",
+      "redirector_facing": "east",
+      "redirector_routes": {
+        "unpowered": {
+          "east": 16
+        },
+        "powered": {
+          "south": 16
+        },
+        "south_blocked": {
+          "north": 16
+        },
+        "both_sides_blocked": {
+          "east": 16
+        },
+        "side_belts_without_rear": {
+          "north": 16
+        }
+      },
+      "sorter": {
+        "slots": 18,
+        "samples_per_occupied_slot": 1,
+        "left_only": 16,
+        "right_only": 16,
+        "unmatched_forward": 16,
+        "split_2_to_1": [
+          11,
+          5
+        ],
+        "same_filters_after_restart": true
+      },
+      "content_fix": "Убрано повторное объявление facing. Блок наследует свойство шаблона бочки."
     }
   },
   "original_source": {
@@ -101,13 +138,13 @@
     },
     {
       "path": "dist/powercraft2-0.6.0-content.hmod",
-      "bytes": 20643,
-      "sha256": "c74f43571d1928a25ba095aabb1c411b2e164a7b8f9de9f2ed029b670375faf9"
+      "bytes": 20610,
+      "sha256": "d62b48978359b3610b514b9d4b4462ff88f187a02ff33bf16f0c22d9150d3288"
     }
   ],
   "not_verified": [
-    "Меню, сохранение образцов, пропорции деления, движение и разгрузка сортировщика в игре.",
-    "Переключение и разгрузка перенаправляющей ленты, LAN и массовая нагрузка."
+    "LAN, нагрузка, плавность движения, дополнительные направления и контейнеры вне игрового сценария.",
+    "Выпадение образцов при разрушении, воронки и крафт сортировщика в игре."
   ],
   "limitations": [
     "Фильтры сравнивают ID и повреждение, как в опубликованной версии. Дополнительные компоненты не участвуют в сравнении и сохраняются в стопках.",
