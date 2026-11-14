@@ -1,3 +1,5 @@
+> 0.4.0: тот же SHA Horizon/Mixins, девять именованных hooks, API минимум 381. Документирован новый читающий мост Game::with_level → LevelAccess::count_entities_at, публичные ModBlockEntity.data несохраняемы. 15 файлов источников проверены по удалённым Git blob ID.
+
 > 0.3.0 сохраняет тот же Horizon/Mixins. Дополнительные публичные helpers insert_item API 20, item_entities/set_item_entity API 42; новых хуков/обновления движка нет. Официальная интеграция прошла; см. текущий VERIFICATION.json.
 
 > Выпуск 0.2.0 сохраняет эти же пины. Официальная интеграция прошла; добавлены публичные Host::neighbor_signal и set_block_property_with, без повышения минимального API и без новых хуков. База 0.1.1 уже подтверждена пользователем в игре; новые ленты пока не приняты. Текущий отчёт — VERIFICATION.json.

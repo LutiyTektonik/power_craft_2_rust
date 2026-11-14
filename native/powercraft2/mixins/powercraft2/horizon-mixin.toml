@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.3.1"
+version = "0.4.0"
 priority = 100
 
 [compatibility]
@@ -57,4 +57,62 @@ bindings = [
   { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
   { name = "context", ty = "&horizon_world::level::PlacementContext", value = "context" },
   { name = "answer", ty = "&mut Option<Option<horizon_world::registry::BlockStateId>>", value = "&mut *answer" },
+]
+
+[[injection]]
+id = "detector_factory"
+hook = "block_entity"
+hook_version = 1
+kind = "HEAD"
+helper = "detector_factory.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "entity", ty = "&mut Option<(String, horizon_world::nbt::Compound)>", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "detector_ticks"
+hook = "block_entity_ticks"
+hook_version = 1
+kind = "HEAD"
+helper = "detector_ticks.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "ticks", ty = "&mut bool", value = "&mut *ticks" },
+]
+
+[[injection]]
+id = "detector_tick"
+hook = "block_entity_tick"
+hook_version = 1
+kind = "HEAD"
+helper = "detector_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "entity", ty = "&mut horizon_client::mod_api::ModBlockEntity", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "detector_signal"
+hook = "block_signal"
+hook_version = 1
+kind = "HEAD"
+helper = "detector_signal.rs"
+bindings = [
+  { name = "level", ty = "&crate::game::GameLevel<'_>", value = "self" },
+  { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
+  { name = "signal", ty = "&mut i32", value = "&mut *signal" },
+]
+
+[[injection]]
+id = "detector_source"
+hook = "is_signal_source"
+hook_version = 1
+kind = "HEAD"
+helper = "detector_source.rs"
+bindings = [
+  { name = "level", ty = "&crate::game::GameLevel<'_>", value = "self" },
+  { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
+  { name = "source", ty = "&mut bool", value = "&mut *source" },
 ]

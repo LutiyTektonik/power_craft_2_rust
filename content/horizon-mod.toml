@@ -1,6 +1,6 @@
 id = "powercraft2"
 name = "PowerCraft 2 Horizon"
-version = "0.3.1"
+version = "0.4.0"
 description = "Transport: обычная, быстрая и тормозная ленты. Движение требует нативной части той же версии."
 authors = ["PowerCraft 2 Horizon contributors"]
 api = "0.2"

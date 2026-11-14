@@ -1,29 +1,38 @@
 {
   "date": "2026-11-14",
   "timezone": "Asia/Novosibirsk",
-  "native_version": "0.3.0",
-  "content_version": "0.3.0",
+  "native_version": "0.4.0",
+  "content_version": "0.4.0",
   "horizon": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
   "horizon_mixins": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
   "game": "26.3",
   "rust": "1.95.0",
-  "logs_directory": "target/verification-storage",
+  "logs_directory": "target/verification-detector",
   "baseline": {
     "tag": "powercraft2-v0.2.0-tested",
-    "code_commit": "512ad8ef73bc8157d56ad8abd3c47f976aafc194",
-    "confirmed_by_user": "Обычные, ускоренные и замедленные конвейеры успешно работают. Это подтверждение 0.2.0, не новая приёмка передачи 0.3.0."
+    "description": "Три прежние ленты подтверждены пользователем. Новые Speedy-разгрузка и detector ещё требуют игровой приёмки."
   },
-  "implemented": "Передача normal/brake в семь vanilla-контейнеров, перед/бока/верх, грани, partial/full/refused, остаток, общий лимит 64. Новых блоков, предметов, рецептов нет.",
+  "implemented": [
+    "Speedy-разгрузка в прежние семь vanilla-контейнеров по прямому запросу, без изменения скорости/лимита",
+    "Детекторный блок/предмет, четыре facing, powered, движение normal, AABB-обнаружение, 15/0 на всех гранях, сброс/оповещение после загрузки",
+    "Два опубликованных recipe-варианта, loot, свои текстуры/модели, добавочные ru/en и creative entries"
+  ],
   "checks": {
     "project": {
       "command": "scripts/check.sh",
       "status": "passed",
-      "rust_tests": 37,
-      "python_tests": 25,
+      "rust_tests": 45,
+      "python_tests": 28,
       "cargo_fmt": "passed",
-      "rustfmt_helpers": "passed",
+      "rustfmt_all_helpers": "passed",
       "clippy_all_targets_D_warnings": "passed",
       "log": "logs/project-check.log"
+    },
+    "speedy_stage": {
+      "version": "0.3.1",
+      "commit": "ceb99bc",
+      "status": "passed",
+      "evidence": "SPEEDY_VERIFICATION.json"
     },
     "horizon": {
       "command": "python3 native/tools/native.py check powercraft2",
@@ -32,7 +41,7 @@
         "NATIVE_NO_DEFAULT_FEATURES": "1",
         "CARGO_NET_OFFLINE": "true"
       },
-      "details": "Официальный Mixins + cargo check -p horizon-client --bin horizon-client --locked --no-default-features -j2, RUSTFLAGS=-D warnings; настоящий движок на Linux. Не Windows exe и не запуск Minecraft.",
+      "details": "Официальный Mixins, 9 именованных хуков, cargo check настоящего horizon-client на Linux --locked --no-default-features -j2, RUSTFLAGS=-D warnings. Не Windows exe/запуск Minecraft.",
       "log": "logs/horizon-check.log"
     },
     "content_build": {
@@ -44,7 +53,7 @@
     "native_package": {
       "command": "python3 native/tools/native.py package powercraft2",
       "status": "passed",
-      "postprocessing": "Удалено только необязательное hooks для строгого Horizon pin; Rust-payload не меняется."
+      "postprocessing": "Удалено только необязательное hooks для строгого pin; Rust-payload неизменён."
     },
     "native_validation": {
       "ok": true,
@@ -56,11 +65,11 @@
         "id": "powercraft2",
         "kind": "native-mod",
         "requires": [],
-        "sha256": "87fee69b142775cfb5313cb0e5e25ffb2262e84fedb19836aa95a34621fea0a7",
+        "sha256": "d6596d6b1d80b59a182c489480fde22155e5b74f8e6248f63389a5800f9b4dab",
         "side": null,
         "signed": false,
-        "size": 13828,
-        "version": "0.3.0"
+        "size": 17735,
+        "version": "0.4.0"
       }
     },
     "content_validation": {
@@ -75,72 +84,63 @@
         "id": "powercraft2",
         "kind": "mod",
         "requires": [],
-        "sha256": "ca771af71ade2db4b16edcd3a6dabd569099975ed9f380b2cdc0c7f7b190cc26",
+        "sha256": "645e63b537a807ddf76b86bf5d9475f19d645856d792ed96c168f59257d7bb5a",
         "side": "both",
         "signed": false,
-        "size": 10337,
-        "version": "0.3.0"
+        "size": 14214,
+        "version": "0.4.0"
       }
     },
     "core_release_build": {
       "command": "cargo build --release --locked --offline",
       "status": "passed",
-      "scope": "Независимая Rust-библиотека, не игра",
+      "scope": "Чистая Rust-библиотека, не игра",
       "log": "logs/core-release-build.log"
     },
     "horizon_source_audit": {
       "status": "passed",
-      "verified_files": 11
-    },
-    "original_source_inventory": {
-      "status": "passed",
-      "verified_files": 445,
-      "java_files": 427
-    },
-    "published_audit": {
-      "status": "passed",
-      "jars": 26,
-      "java_files": 427,
-      "byte_identical_to_git": 404,
-      "different_from_git": 23,
-      "registered_objects": 62,
-      "recipe_declarations": 148,
-      "evidence": "PUBLISHED_AUDIT.json; Java/Forge не запускались"
+      "verified_files": 15,
+      "method": "Git blob ID из удалённого закреплённого дерева"
     },
     "preservation": {
       "status": "passed",
-      "byte_identical_content_files_from_0_2_0": 29,
-      "client_tick_listen_placement": "Не менялись относительно проверенной базы",
+      "byte_identical_content_files": 26,
+      "additive_json_files": 3,
+      "details": "Сохранены все старые записи языков и элементы вкладки; старые определения/ID/рецепты/ресурсы/физика не удалены.",
       "evidence": "BASELINE_DATA.json"
     }
   },
+  "integration_details": [
+    "Detector использует 5 новых именованных хуков, state-only redstone и стандартные property/neighbor updates",
+    "AABB query через читающий pin-specific Game::with_level → LevelAccess::count_entities_at; Host::entities_in не подменяет AABB",
+    "Block entity data[0] — несохраняемый bootstrap-флаг, пользовательский NBT пустой, состояние facing/powered штатное"
+  ],
   "artifacts": [
     {
-      "path": "dist/powercraft2-0.3.0.hnmod",
-      "bytes": 13828,
-      "sha256": "87fee69b142775cfb5313cb0e5e25ffb2262e84fedb19836aa95a34621fea0a7"
+      "path": "dist/powercraft2-0.4.0.hnmod",
+      "bytes": 17735,
+      "sha256": "d6596d6b1d80b59a182c489480fde22155e5b74f8e6248f63389a5800f9b4dab"
     },
     {
-      "path": "dist/powercraft2-0.3.0-content.hmod",
-      "bytes": 10337,
-      "sha256": "ca771af71ade2db4b16edcd3a6dabd569099975ed9f380b2cdc0c7f7b190cc26"
+      "path": "dist/powercraft2-0.4.0-content.hmod",
+      "bytes": 14214,
+      "sha256": "645e63b537a807ddf76b86bf5d9475f19d645856d792ed96c168f59257d7bb5a"
     }
   ],
   "not_verified": [
-    "Передача в настоящие контейнеры/компоненты и сохранение мира в Minecraft",
-    "Windows-сборка Launcher и игра 0.3.0",
-    "LAN/две конкурирующие операции игроков",
-    "Фактические FPS/TPS и большая нагрузка",
-    "Игровая работоспособность каждого механизма оригинального Forge-мода"
+    "Игровой запуск 0.4.0, реальные провода/лампы/игроки",
+    "Сохранение/выгрузка и реальные контейнеры с Speedy в Minecraft",
+    "LAN и совместная native-сборка",
+    "Реальные FPS/TPS и массовые детекторы"
   ],
   "limitations": [
-    "Только chest/trapped_chest/furnace/hopper/dispenser/dropper/brewing_stand, а не произвольные mod-контейнеры/вагонетки",
-    "64 предмета на сущность за тик",
-    "Speedy не передаёт сам, как в опубликованном классе",
-    "Синхронный контракт выбранных vanilla API не является общей транзакцией для любых callbacks/crash-atomicity",
-    "Модельные тесты counts/FPS не заменяют игру",
-    "Экспериментальные/неисправные/незавершённые оригинальные функции отложены по последнему запросу"
+    "Detector — block entity, сейчас не двигается поршнями",
+    "Опрос каждый серверный тик и dirty-политика BE требуют профилирования",
+    "Фильтры стандартных триггеров Horizon, не все Forge-исключения sneak/sticky boots",
+    "Detector сам не разгружается; user exception для Speedy не расширяет другие типы автоматически",
+    "Вагонетки/произвольные mod-контейнеры в передаче не поддержаны",
+    "Модельные тесты не заменяют игру; полный перенос ещё не завершён"
   ],
-  "update": "Обновить обе части до 0.3.0 и выполнить native rebuild в Launcher; пины прежние. Новых ID/схем в этом выпуске нет.",
-  "git": "Локальная ветка work/transport-storage, отдельные коммиты и тег базы. Origin отсутствует; доступных GitHub-репозиториев коннектор ранее не показал, push/PR не выполнены."
+  "update": "Обновить обе части 0.4.0 и выполнить native rebuild. Для rollback мира с новым detector нужна подходящая копия. Пины прежние.",
+  "git": "Рабочая ветка work/transport-detector. Speedy и detector сохраняются отдельными коммитами. Origin отсутствует, push/PR не выполнены."
 }

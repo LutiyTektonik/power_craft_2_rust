@@ -15,7 +15,7 @@ if [[ "$mode" == --static ]]; then
 fi
 command -v cargo >/dev/null || { echo 'Cargo недоступен: Rust-проверки не выполнены.' >&2; exit 1; }
 cargo fmt --all --check
-rustfmt --edition 2024 --check native/powercraft2/mixins/powercraft2/{listen,item_tick,client_tick,placement}.rs
+rustfmt --edition 2024 --check native/powercraft2/mixins/powercraft2/*.rs
 cargo clippy --workspace --all-targets --locked --offline -- -D warnings
 cargo test --workspace --locked --offline
 if [[ "$mode" == --horizon ]]; then

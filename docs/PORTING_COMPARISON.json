@@ -43,6 +43,11 @@
       "name": "Разгрузка Speedy",
       "comparison": "Является нашим дополнительным функционалом",
       "evidence": "Прямо разрешена последним запросом пользователя, реализована в 0.3.1; игровая приёмка ещё требуется."
+    },
+    {
+      "name": "Детекторная лента",
+      "comparison": "Перенесён частично",
+      "evidence": "0.4.0: движение/предметы/рецепты/AABB/redstone/reload-логика реализованы, игровая приёмка не выполнена; упаковка/despawn и поршневое соответствие не восстановлены."
     }
   ],
   "registered_objects": [
@@ -536,8 +541,8 @@
       "module": "transport",
       "object": "detectionBelt",
       "class": "PCtr_BlockBeltDetector",
-      "comparison": "Отсутствует и требует реализации",
-      "port_status": "Не начата",
+      "comparison": "Перенесён частично",
+      "port_status": "0.4.0 реализована, не протестирована в игре",
       "source": "PUBLISHED_MECHANICS.json",
       "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
     },

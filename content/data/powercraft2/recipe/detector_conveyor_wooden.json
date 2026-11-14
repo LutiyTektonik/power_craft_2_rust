@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "P",
+    "C",
+    "R"
+  ],
+  "key": {
+    "P": "minecraft:oak_pressure_plate",
+    "C": "powercraft2:conveyor",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:detector_conveyor",
+    "count": 1
+  }
+}

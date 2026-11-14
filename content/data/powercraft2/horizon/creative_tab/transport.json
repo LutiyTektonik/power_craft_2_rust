@@ -4,6 +4,7 @@
   "items": [
     "powercraft2:conveyor",
     "powercraft2:speedy_conveyor",
-    "powercraft2:brake_conveyor"
+    "powercraft2:brake_conveyor",
+    "powercraft2:detector_conveyor"
   ]
 }

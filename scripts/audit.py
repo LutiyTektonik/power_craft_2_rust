@@ -64,7 +64,8 @@ def validate(root=ROOT, sources=None):
     evidence = read_json(root / 'docs/API_EVIDENCE.json')
     require(evidence['horizon_revision'] == revision, 'stale API evidence')
     available = {h['name']: h for h in evidence['hooks']}
-    expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement'}
+    expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement',
+                'block_entity', 'block_entity_ticks', 'block_entity_tick', 'block_signal', 'is_signal_source'}
     require({i['hook'] for i in manifest['injection']} == expected, 'unexpected hooks')
     require(len(manifest['injection']) == len(expected), 'duplicate hook')
     for injection in manifest['injection']:
@@ -100,16 +101,17 @@ def validate(root=ROOT, sources=None):
     require(recipe['result'] == {'id': 'powercraft2:conveyor', 'count': 4}, 'recipe result mismatch')
     for name, data in textures().items():
         require((content / 'assets/powercraft2/textures/block' / name).read_bytes() == data, 'texture provenance mismatch')
-    for name in ('speedy_conveyor', 'brake_conveyor'):
+    for name in ('speedy_conveyor', 'brake_conveyor', 'detector_conveyor'):
         definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
         require(definition['item'] is True and definition['template'] == block['template'], 'variant registration mismatch')
         require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
         require(definition['shapes']['default'] == definition['collision_shapes']['default'] == shape, 'variant surface mismatch')
         require(definition['default_state']['facing'] == 'north', 'variant default mismatch')
         states = read_json(content / f'assets/powercraft2/blockstates/{name}.json')['variants']
-        if name == 'brake_conveyor':
-            require(definition['state_properties']['powered'] == {'type': 'boolean'}, 'invalid brake powered schema')
-            require(definition['default_state']['powered'] == 'false', 'invalid brake default power')
+        if name in ('brake_conveyor', 'detector_conveyor'):
+            power_name = 'brake' if name == 'brake_conveyor' else 'detector'
+            require(definition['state_properties']['powered'] == {'type': 'boolean'}, f'invalid {power_name} powered schema')
+            require(definition['default_state']['powered'] == 'false', f'invalid {power_name} default power')
             expected_states = {f'facing={d},powered={power}' for d in directions for power in ('false', 'true')}
         else:
             expected_states = {f'facing={d}' for d in directions}
@@ -126,7 +128,7 @@ def validate(root=ROOT, sources=None):
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == f'powercraft2:{name}', 'variant loot mismatch')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor'], 'transport tab mismatch')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:

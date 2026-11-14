@@ -190,10 +190,19 @@ class ProjectTests(unittest.TestCase):
         for name, digest in baseline['unchanged_content_sha256'].items():
             self.assertEqual(hashlib.sha256((self.root / name).read_bytes()).hexdigest(), digest, name)
 
-    def test_all_tested_three_belt_data_recipes_and_resources_stay_identical(self):
+    def test_tested_three_belt_data_is_preserved_with_only_additive_catalog_entries(self):
         baseline = json.loads((self.root / 'docs/BASELINE_DATA.json').read_text())
         for name, digest in baseline['tested_0_2_0_content_sha256'].items():
-            self.assertEqual(hashlib.sha256((self.root / name).read_bytes()).hexdigest(), digest, name)
+            old = baseline.get('additive_json_baselines', {}).get(name)
+            if old is None:
+                self.assertEqual(hashlib.sha256((self.root / name).read_bytes()).hexdigest(), digest, name)
+                continue
+            current = json.loads((self.root / name).read_text())
+            for key, value in old.items():
+                if key == 'items':
+                    self.assertEqual(current[key][:len(value)], value)
+                else:
+                    self.assertEqual(current[key], value, (name, key))
 
     def test_brake_requires_both_power_states_for_all_four_directions(self):
         self.change_json('content/assets/powercraft2/blockstates/brake_conveyor.json',
@@ -212,6 +221,29 @@ class ProjectTests(unittest.TestCase):
                          lambda d: d['pools'][0]['entries'][0].update(name='powercraft2:conveyor'))
         with self.assertRaisesRegex(audit.AuditError, 'variant loot mismatch'):
             audit.validate(self.root)
+
+    def test_detector_requires_both_power_states_for_all_facings(self):
+        self.change_json('content/assets/powercraft2/blockstates/detector_conveyor.json',
+                         lambda d: d['variants'].pop('facing=east,powered=false'))
+        with self.assertRaisesRegex(audit.AuditError, 'missing variant blockstate'):
+            audit.validate(self.root)
+
+    def test_detector_redstone_hook_is_required(self):
+        p = self.root / 'native/powercraft2/mixins/powercraft2/horizon-mixin.toml'
+        text = p.read_text()
+        start = text.index('[[injection]]\nid = "detector_signal"')
+        end = text.index('[[injection]]', start + len('[[injection]]'))
+        p.write_text(text[:start] + text[end:])
+        with self.assertRaisesRegex(audit.AuditError, 'unexpected hooks'):
+            audit.validate(self.root)
+
+    def test_detector_recipes_match_published_stone_and_wooden_options(self):
+        for name, plate in [('detector_conveyor', 'stone_pressure_plate'),
+                            ('detector_conveyor_wooden', 'oak_pressure_plate')]:
+            data = json.loads((self.root / f'content/data/powercraft2/recipe/{name}.json').read_text())
+            self.assertEqual(data['pattern'], ['P', 'C', 'R'])
+            self.assertEqual(data['key'], {'P': f'minecraft:{plate}', 'C': 'powercraft2:conveyor', 'R': 'minecraft:redstone'})
+            self.assertEqual(data['result'], {'id': 'powercraft2:detector_conveyor', 'count': 1})
 
 
 if __name__ == '__main__':

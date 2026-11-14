@@ -5,6 +5,7 @@ pub const MOD_ID: &str = "powercraft2";
 pub const CONVEYOR: &str = "powercraft2:conveyor";
 pub const SPEEDY_CONVEYOR: &str = "powercraft2:speedy_conveyor";
 pub const BRAKE_CONVEYOR: &str = "powercraft2:brake_conveyor";
+pub const DETECTOR_CONVEYOR: &str = "powercraft2:detector_conveyor";
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
 pub const DEFAULT_CENTERING: f64 = 0.04;
@@ -16,6 +17,7 @@ pub enum Belt {
     Normal,
     Speedy,
     Brake,
+    Detector,
 }
 
 impl Belt {
@@ -24,6 +26,7 @@ impl Belt {
             CONVEYOR => Some(Self::Normal),
             SPEEDY_CONVEYOR => Some(Self::Speedy),
             BRAKE_CONVEYOR => Some(Self::Brake),
+            DETECTOR_CONVEYOR => Some(Self::Detector),
             _ => None,
         }
     }
@@ -218,7 +221,7 @@ pub fn belt_velocity_for_tick(
     powered: bool,
 ) -> Result<[f64; 3], Error> {
     let config = match belt {
-        Belt::Normal => config,
+        Belt::Normal | Belt::Detector => config,
         Belt::Speedy => Config::new(config.speed * 2.0, config.centering)?,
         Belt::Brake => Config::new(config.speed * 0.6, config.centering)?,
     };
@@ -279,6 +282,11 @@ pub fn storage_targets(
     velocity_for_tick(direction, block, item, Config::default())?;
     // Speedy unloading is an explicitly requested extension of the published
     // behavior. It shares the same targets, face rules and transfer budget.
+    // The original Detector does not unload. Do not extend other variants
+    // implicitly when adding their movement behavior.
+    if belt == Belt::Detector {
+        return Ok([None; 4]);
+    }
     let [dx, _, dz] = direction.vector();
     let past_center = if dx != 0 {
         (item.position[0] - f64::from(block[0]) - 0.5) * f64::from(dx) >= 0.0
@@ -358,6 +366,42 @@ impl Transfer {
     pub fn remaining(self) -> u32 {
         self.source - self.moved
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DetectorUpdate {
+    pub powered: bool,
+    pub notify_neighbors: bool,
+    pub click: bool,
+}
+
+pub fn detector_update(
+    previous: bool,
+    occupied: bool,
+    enabled: bool,
+    first_tick: bool,
+) -> DetectorUpdate {
+    let powered = enabled && occupied;
+    let changed = previous != powered;
+    DetectorUpdate {
+        powered,
+        notify_neighbors: first_tick || changed,
+        click: changed,
+    }
+}
+
+pub fn detector_signal(powered: bool) -> i32 {
+    if powered { 15 } else { 0 }
+}
+
+pub fn detector_area(block: [i32; 3]) -> Result<([f64; 3], [f64; 3]), Error> {
+    support_block([
+        f64::from(block[0]) + 0.5,
+        f64::from(block[1]) + BELT_HEIGHT,
+        f64::from(block[2]) + 0.5,
+    ])?;
+    let min = block.map(f64::from);
+    Ok((min, min.map(|n| n + 1.0)))
 }
 
 #[cfg(test)]
@@ -1148,5 +1192,115 @@ mod tests {
             assert_eq!(remaining + stored, 150);
         }
         Ok(())
+    }
+
+    #[test]
+    fn detector_registers_its_own_id_and_preserves_normal_motion() -> Result<(), Error> {
+        assert_eq!(Belt::from_block(DETECTOR_CONVEYOR), Some(Belt::Detector));
+        for direction in DIRECTIONS {
+            let item = resting([0.4, 0.25, 0.6]);
+            assert_eq!(
+                belt_velocity_for_tick(
+                    Belt::Detector,
+                    direction,
+                    [0; 3],
+                    item,
+                    Config::default(),
+                    true
+                )?,
+                velocity_for_tick(direction, [0; 3], item, Config::default())?
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn detector_does_not_implicitly_gain_unloading() -> Result<(), Error> {
+        for direction in DIRECTIONS {
+            for powered in [false, true] {
+                assert_eq!(
+                    storage_targets(
+                        Belt::Detector,
+                        direction,
+                        [0; 3],
+                        resting([0.5, 0.25, 0.5]),
+                        powered
+                    )?,
+                    [None; 4]
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn detector_area_is_the_original_full_block_cube() -> Result<(), Error> {
+        assert_eq!(
+            detector_area([2, 64, 15])?,
+            ([2.0, 64.0, 15.0], [3.0, 65.0, 16.0])
+        );
+        assert_eq!(
+            detector_area([-17, -64, -1])?,
+            ([-17.0, -64.0, -1.0], [-16.0, -63.0, 0.0])
+        );
+        assert!(detector_area([i32::MAX, 0, 0]).is_err());
+        assert!(detector_area([0, i32::MIN, 0]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn detector_emits_fifteen_then_resets_after_last_entity() {
+        let mut powered = false;
+        for (count, expected, click) in [(0, 0, false), (2, 15, true), (1, 15, false), (0, 0, true)]
+        {
+            let update = detector_update(powered, count > 0, true, false);
+            assert_eq!(detector_signal(update.powered), expected);
+            assert_eq!(update.notify_neighbors, click);
+            assert_eq!(update.click, click);
+            powered = update.powered;
+        }
+    }
+
+    #[test]
+    fn loaded_detector_notifies_once_without_false_click_when_unchanged() {
+        for powered in [false, true] {
+            let first = detector_update(powered, powered, true, true);
+            assert!(first.notify_neighbors);
+            assert!(!first.click);
+            let next = detector_update(first.powered, powered, true, false);
+            assert!(!next.notify_neighbors);
+            assert!(!next.click);
+        }
+    }
+
+    #[test]
+    fn saved_power_is_recomputed_after_loading_an_empty_chunk() {
+        let update = detector_update(true, false, true, true);
+        assert!(!update.powered);
+        assert!(update.notify_neighbors);
+        assert!(update.click);
+        assert_eq!(detector_signal(update.powered), 0);
+    }
+
+    #[test]
+    fn disabling_detector_clears_output_even_while_occupied() {
+        let update = detector_update(true, true, false, false);
+        assert!(!update.powered);
+        assert!(update.notify_neighbors);
+        let again = detector_update(update.powered, true, false, false);
+        assert!(!again.notify_neighbors);
+        assert!(!again.click);
+    }
+
+    #[test]
+    fn stable_detector_does_not_repeat_neighbor_updates_or_sounds() {
+        for powered in [false, true] {
+            for _ in 0..1000 {
+                let update = detector_update(powered, powered, true, false);
+                assert_eq!(update.powered, powered);
+                assert!(!update.notify_neighbors);
+                assert!(!update.click);
+            }
+        }
     }
 }

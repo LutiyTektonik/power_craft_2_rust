@@ -41,5 +41,28 @@
     "content/data/powercraft2/recipe/conveyor_paper.json": "42ca95b6e73c125e7f7c4487c08d5aca453f40743adde83382ec38f4d62450ef",
     "content/data/powercraft2/recipe/speedy_conveyor.json": "07c27b90fb55886aaaad842d104ed6ae303ba0b53b9e114aca3640749fcfed98",
     "content/data/powercraft2/recipe/speedy_conveyor_paper.json": "e01b874c840e4875c5886d27ea35db145595597f6d028adc069aa54f6512a6e7"
+  },
+  "additive_json_baselines": {
+    "content/assets/powercraft2/lang/ru_ru.json": {
+      "block.powercraft2.conveyor": "Конвейерная лента",
+      "itemGroup.powercraft2.transport": "PowerCraft 2: Транспорт",
+      "block.powercraft2.speedy_conveyor": "Быстрая конвейерная лента",
+      "block.powercraft2.brake_conveyor": "Тормозная конвейерная лента"
+    },
+    "content/assets/powercraft2/lang/en_us.json": {
+      "block.powercraft2.conveyor": "Conveyor Belt",
+      "itemGroup.powercraft2.transport": "PowerCraft 2: Transport",
+      "block.powercraft2.speedy_conveyor": "Speedy Conveyor",
+      "block.powercraft2.brake_conveyor": "Brake Conveyor"
+    },
+    "content/data/powercraft2/horizon/creative_tab/transport.json": {
+      "title": "itemGroup.powercraft2.transport",
+      "icon": "powercraft2:conveyor",
+      "items": [
+        "powercraft2:conveyor",
+        "powercraft2:speedy_conveyor",
+        "powercraft2:brake_conveyor"
+      ]
+    }
   }
 }

@@ -39,11 +39,19 @@ def brake(x, y, powered=False):
     return top(x, y)
 
 
+def detector(x, y, powered=False):
+    if x in (2, 3, 12, 13) and 4 <= y <= 11:
+        return (66, 240, 105) if powered else (145, 163, 180)
+    return top(x, y)
+
+
 def textures():
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
             'brake_conveyor_top.png': png(brake),
-            'brake_conveyor_powered.png': png(lambda x, y: brake(x, y, True))}
+            'brake_conveyor_powered.png': png(lambda x, y: brake(x, y, True)),
+            'detector_conveyor_top.png': png(detector),
+            'detector_conveyor_powered.png': png(lambda x, y: detector(x, y, True))}
 
 
 if __name__ == '__main__':

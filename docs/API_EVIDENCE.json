@@ -39,6 +39,47 @@
         "contract": "collect",
         "out": "listened"
       }
+    },
+    {
+      "name": "block_entity",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_block_entity",
+      "mod_api": {
+        "contract": "replace",
+        "out": "entity"
+      }
+    },
+    {
+      "name": "block_entity_ticks",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_block_entity_ticks",
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "block_entity_tick",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_block_entity_tick",
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "block_signal",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::GameLevel<'_>::native_block_signal",
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "is_signal_source",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::GameLevel<'_>::native_is_signal_source",
+      "mod_api": {
+        "contract": "listen"
+      }
     }
   ],
   "helpers": [
@@ -104,6 +145,14 @@
     {
       "name": "insert_item",
       "target": "horizon_client::game::native_hooks::Game<'_>::native_insert_item"
+    },
+    {
+      "name": "update_signal_neighbors",
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_update_signal_neighbors"
+    },
+    {
+      "name": "dimension",
+      "target": "horizon_client::game::machines::native_items::Game<'_>::native_dimension"
     }
   ],
   "source_files": [
@@ -150,6 +199,22 @@
     {
       "path": "crates/horizon-client/src/game/machines/native_items.rs",
       "git_blob": "403c838e92d48b0182776d5839c60c999a511ce2"
+    },
+    {
+      "path": "crates/horizon-world/src/level/mod.rs",
+      "git_blob": "b96b9de8d6a7ed2d2af4420f93bead38517cb103"
+    },
+    {
+      "path": "crates/horizon-client-render/src/chunk/block_entity.rs",
+      "git_blob": "a8251add39b48b472fe4729415d6247ad448d851"
+    },
+    {
+      "path": "crates/horizon-client/src/game/physical_trigger.rs",
+      "git_blob": "8ab2a90236ff12d88c5c0312e0467c276a78abad"
+    },
+    {
+      "path": "crates/horizon-world/src/level/redstone.rs",
+      "git_blob": "fa43fb44ae784f8c4ffef91372855da0cb6c9ae1"
     }
   ]
 }
