@@ -21,7 +21,9 @@ scripts/check.sh --horizon           # настоящая проверка ин�
 scripts/build.sh --horizon           # дополнительно собрать модифицированный клиент
 ```
 
-В текущей среде прошли 10 Python-тестов. Написаны 11 Rust-тестов, но они не запускались. Полный список результатов — [docs/STATUS.md](docs/STATUS.md).
+В текущей среде прошли 13 Python-тестов. Написаны 11 Rust-тестов, но они не запускались. Полный список результатов — [docs/STATUS.md](docs/STATUS.md).
+
+Для Windows 11 подготовлены [инструкция Launcher](docs/WINDOWS11.md), [аудит функций](docs/FEATURE_AUDIT.md) и [отчёт команд](docs/WINDOWS11_VERIFICATION.json). `python3 scripts/prepare-windows.py` собирает экспериментальный набор после упаковки исходников; он явно помечен как не прошедший компиляцию и игровые тесты. Содержит вход Launcher со строгими Horizon/Mixins pins и контрольными суммами.
 
 `dist/powercraft2-0.1.0-content.hmod` содержит блок, рецепт и ресурсы. `dist/powercraft2-0.1.0.hnmod` содержит нативные исходники; он создан официальным `native/tools/native.py package powercraft2`. Наличие этих файлов не означает, что Rust собран или что архивы прошли официальный `cargo horizon-mod check`.
 

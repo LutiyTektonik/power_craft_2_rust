@@ -1,0 +1,33 @@
+{
+  "horizon_revision": "f4d8d62c31ec2b08046faded7bef1b476783f319",
+  "mixins_revision": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+  "horizon_files": [
+    {
+      "path": "launcher/src/native_mods.rs",
+      "git_blob": "98135c5e1056629555ef12a743b4019cfee2ebfc"
+    },
+    {
+      "path": "launcher/src/cli.rs",
+      "git_blob": "a02b24bc593bbaa5d12e05ae815c3da91e20513c"
+    },
+    {
+      "path": "launcher/src/rust_toolchain.rs",
+      "git_blob": "4782a245ee1a7fcbf3b698660b838ca292e4c63e"
+    },
+    {
+      "path": "crates/cargo-horizon-mod/src/main.rs",
+      "git_blob": "7caa5007dbf83fd2375d2941c6100fdd8e860904"
+    },
+    {
+      "path": "crates/cargo-horizon-mod/src/check.rs",
+      "git_blob": "39a982301880b6b99011203e6d6a28b50ceb4151"
+    }
+  ],
+  "mixins_files": [
+    {
+      "path": "crates/horizon-mixins-cli/src/staging.rs",
+      "git_blob": "5a20ff8bbde84cf5f51f77bb2d8938471314691a"
+    }
+  ]
+}
+

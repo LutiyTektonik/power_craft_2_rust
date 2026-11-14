@@ -24,7 +24,10 @@ if [[ "$mode" == --horizon ]]; then
     pc2_require_horizon_space
     # Downloads pinned source, stages with official Mixins, checks the real game.
     python3 native/tools/native.py check powercraft2
-    python3 scripts/package.py
+    python3 native/tools/native.py package powercraft2
+    (cd content && cargo horizon-mod build)
+    mkdir -p dist
+    cp content/target/horizon-mod/powercraft2.hmod dist/powercraft2-0.1.0-content.hmod
     cargo horizon-mod check dist/powercraft2-0.1.0-content.hmod
     cargo horizon-mod check native/target/powercraft2-0.1.0.hnmod
 fi

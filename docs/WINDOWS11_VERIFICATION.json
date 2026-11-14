@@ -1,0 +1,191 @@
+{
+  "date": "2026-11-14",
+  "horizon_revision": "f4d8d62c31ec2b08046faded7bef1b476783f319",
+  "checks": [
+    {
+      "name": "python_tests",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "target/verification-windows11/python_tests.log"
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "scripts/audit.py",
+        "--sources",
+        "/workspace/powercraft2-research/horizon-rust-horizon"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "target/verification-windows11/source_audit.log"
+    },
+    {
+      "name": "shell_syntax",
+      "command": [
+        "bash",
+        "-n",
+        "scripts/bootstrap.sh",
+        "scripts/check.sh",
+        "scripts/build.sh",
+        "scripts/env.sh"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "target/verification-windows11/shell_syntax.log"
+    },
+    {
+      "name": "rust_format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/rust_format.log"
+    },
+    {
+      "name": "rust_clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/rust_clippy.log"
+    },
+    {
+      "name": "rust_tests",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/rust_tests.log"
+    },
+    {
+      "name": "horizon_check",
+      "command": [
+        "python3",
+        "native/tools/native.py",
+        "check",
+        "powercraft2"
+      ],
+      "exit_code": 1,
+      "status": "blocked",
+      "log": "target/verification-windows11/horizon_check.log",
+      "reason": "PermissionError при создании сетевого сокета; исходники codeload.github.com не загружены, Mixins/Cargo не запускались."
+    },
+    {
+      "name": "native_package",
+      "command": [
+        "python3",
+        "native/tools/native.py",
+        "package",
+        "powercraft2"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "target/verification-windows11/native_package.log"
+    },
+    {
+      "name": "official_content_build",
+      "command": [
+        "cargo",
+        "horizon-mod",
+        "build"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/official_content_build.log"
+    },
+    {
+      "name": "official_content_check",
+      "command": [
+        "cargo",
+        "horizon-mod",
+        "check",
+        "dist/powercraft2-0.1.0-content.hmod",
+        "--json"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/official_content_check.log"
+    },
+    {
+      "name": "official_native_check",
+      "command": [
+        "cargo",
+        "horizon-mod",
+        "check",
+        "native/target/powercraft2-0.1.0.hnmod",
+        "--json"
+      ],
+      "status": "blocked",
+      "reason": "Cargo не установлен",
+      "log": "target/verification-windows11/official_native_check.log"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/workspace/powercraft2-horizon/dist/powercraft2-0.1.0-content.hmod",
+      "size": 3661,
+      "sha256": "ce0e310899c6294aa8f926e659c60a448ee70115045ce5ebe5f8c6406b7dc6c8",
+      "zip_crc": "passed",
+      "entries": 12,
+      "in_game": "not tested",
+      "official_validation": "blocked: cargo unavailable"
+    },
+    {
+      "path": "/workspace/powercraft2-horizon/dist/powercraft2-0.1.0.hnmod",
+      "size": 6511,
+      "sha256": "a073a38582cd46ea8a86c9c910a8127756f28725db2b135e7fcb43fb4b5e755c",
+      "zip_crc": "passed",
+      "entries": 7,
+      "in_game": "not tested",
+      "official_validation": "blocked: cargo unavailable"
+    }
+  ],
+  "windows_execution": "not tested",
+  "rust_unit_tests": {
+    "written": 11,
+    "executed": 0,
+    "status": "blocked: Cargo отсутствует"
+  },
+  "python_unit_tests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "github": {
+    "status": "blocked",
+    "reason": "Нет origin и нет доступных репозиториев в коннекторе; запрошен URL репозитория назначения."
+  },
+  "windows_source_audit": {
+    "files": 6,
+    "status": "passed",
+    "method": "Git blob identity; not Windows execution"
+  },
+  "artifact_stage": "source packages; official validation and gameplay not completed"
+}

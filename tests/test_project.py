@@ -1,5 +1,7 @@
 """Meaningful packaging/structure regressions; these do not replace Rust tests."""
 import json
+import hashlib
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -12,6 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 import audit
 from package import package_content
+
+windows_spec = importlib.util.spec_from_file_location('windows_kit', ROOT / 'scripts/prepare-windows.py')
+windows_kit = importlib.util.module_from_spec(windows_spec)
+windows_spec.loader.exec_module(windows_kit)
 
 
 class ProjectTests(unittest.TestCase):
@@ -107,6 +113,44 @@ class ProjectTests(unittest.TestCase):
                                  'package', 'powercraft2'], capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('pins', result.stderr)
+
+    def windows_packages(self):
+        package_content(self.root)
+        subprocess.run([sys.executable, str(self.root / 'native/tools/native.py'),
+                        'package', 'powercraft2'], check=True, capture_output=True)
+        shutil.copyfile(self.root / 'native/target/powercraft2-0.1.0.hnmod',
+                        self.root / 'dist/powercraft2-0.1.0.hnmod')
+
+    def test_windows_kit_preserves_code_and_both_strict_pins(self):
+        self.windows_packages()
+        out = windows_kit.prepare(self.root)
+        first = out.read_bytes()
+        self.assertEqual(windows_kit.prepare(self.root).read_bytes(), first)
+        with zipfile.ZipFile(out) as archive:
+            descriptor = json.loads(archive.read('native-pinned/horizon-native.json'))
+            original = json.loads(windows_kit.read_zip(self.root / 'dist/powercraft2-0.1.0.hnmod')['horizon-native.json'])
+            self.assertNotIn('hooks', descriptor)
+            self.assertEqual(descriptor, {k: v for k, v in original.items() if k != 'hooks'})
+            for name, data in windows_kit.read_zip(self.root / 'dist/powercraft2-0.1.0.hnmod').items():
+                if name != 'horizon-native.json':
+                    self.assertEqual(archive.read('native-pinned/' + name), data)
+            for line in archive.read('SHA256SUMS.txt').decode().splitlines():
+                digest, name = line.split('  ', 1)
+                self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), digest)
+
+    def test_windows_kit_rejects_stale_rust_payload(self):
+        self.windows_packages()
+        source = self.root / 'native/powercraft2/mixins/powercraft2/transport.rs'
+        source.write_text(source.read_text() + '\n// changed after packaging\n')
+        with self.assertRaisesRegex(ValueError, 'Stale source'):
+            windows_kit.prepare(self.root)
+
+    def test_windows_archive_reader_rejects_path_traversal(self):
+        path = self.root / 'bad.zip'
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr('../outside.rs', 'malicious')
+        with self.assertRaisesRegex(ValueError, 'Invalid archive entry'):
+            windows_kit.read_zip(path)
 
 
 if __name__ == '__main__':

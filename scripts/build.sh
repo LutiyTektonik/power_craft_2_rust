@@ -19,6 +19,7 @@ command -v cargo >/dev/null || { echo 'Cargo недоступен: исходн�
 cargo build --release --locked --offline
 command -v cargo-horizon-mod >/dev/null || { echo 'Нет официального cargo-horizon-mod' >&2; exit 1; }
 (cd content && cargo horizon-mod build)
+cp content/target/horizon-mod/powercraft2.hmod dist/powercraft2-0.1.0-content.hmod
 cargo horizon-mod check dist/powercraft2-0.1.0-content.hmod
 cargo horizon-mod check dist/powercraft2-0.1.0.hnmod
 if [[ "$mode" == --horizon ]]; then
