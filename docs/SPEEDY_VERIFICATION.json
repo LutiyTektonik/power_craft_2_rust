@@ -1,0 +1,48 @@
+{
+  "version": "0.3.1",
+  "change": "Разгрузка Speedy разрешена пользователем как дополнение; те же грани, середина и общий лимит 64/тик, без изменения скорости.",
+  "rust_tests": 37,
+  "python_tests": 25,
+  "fmt": "passed",
+  "clippy": "passed",
+  "official_horizon_check": "passed",
+  "horizon": "9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0",
+  "mixins": "e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+  "native_validation": {
+    "ok": true,
+    "report": {
+      "api": "native-1/9f42064c11efe7ef3e5ed2baad7ddc2a3b36eea0/e59da9094f0c2fdda6c627fe9eff22dec6a906f0",
+      "api_level": null,
+      "capabilities": [],
+      "game": "26.3",
+      "id": "powercraft2",
+      "kind": "native-mod",
+      "requires": [],
+      "sha256": "3c527e9442e5979f08d3b84ca4c28edbcd6ec37b2a641cb1e7b21c0ed7b01d64",
+      "side": null,
+      "signed": false,
+      "size": 13873,
+      "version": "0.3.1"
+    }
+  },
+  "content_validation": {
+    "ok": true,
+    "report": {
+      "api": "0.2",
+      "api_level": null,
+      "capabilities": [
+        "registries"
+      ],
+      "game": null,
+      "id": "powercraft2",
+      "kind": "mod",
+      "requires": [],
+      "sha256": "fdcffc1fa44349686ade12f07d40eba1014e260d59e03ccdcedf2e9e3e7478ab",
+      "side": "both",
+      "signed": false,
+      "size": 10337,
+      "version": "0.3.1"
+    }
+  },
+  "in_game": "Не выполнено для нового поведения Speedy"
+}

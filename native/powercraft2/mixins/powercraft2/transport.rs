@@ -277,10 +277,8 @@ pub fn storage_targets(
 ) -> Result<[Option<StorageTarget>; 4], Error> {
     // Reuse the tested contact guard, without changing any motion.
     velocity_for_tick(direction, block, item, Config::default())?;
-    // The published Speedy class does not call storeNearby. Preserve it.
-    if belt == Belt::Speedy {
-        return Ok([None; 4]);
-    }
+    // Speedy unloading is an explicitly requested extension of the published
+    // behavior. It shares the same targets, face rules and transfer budget.
     let [dx, _, dz] = direction.vector();
     let past_center = if dx != 0 {
         (item.position[0] - f64::from(block[0]) - 0.5) * f64::from(dx) >= 0.0
@@ -990,7 +988,7 @@ mod tests {
     }
 
     #[test]
-    fn speedy_keeps_published_behavior_without_nearby_storage() -> Result<(), Error> {
+    fn speedy_unloads_like_normal_without_changing_speed_or_budget() -> Result<(), Error> {
         for direction in DIRECTIONS {
             for powered in [false, true] {
                 assert_eq!(
@@ -1001,7 +999,13 @@ mod tests {
                         resting([0.5, 0.25, 0.5]),
                         powered
                     )?,
-                    [None; 4]
+                    storage_targets(
+                        Belt::Normal,
+                        direction,
+                        [0; 3],
+                        resting([0.5, 0.25, 0.5]),
+                        powered
+                    )?
                 );
             }
         }

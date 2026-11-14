@@ -1,5 +1,6 @@
 """Meaningful packaging/structure regressions; these do not replace Rust tests."""
 import json
+import tomllib
 import hashlib
 import importlib.util
 import shutil
@@ -25,6 +26,7 @@ class ProjectTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        self.native_name = 'powercraft2-' + tomllib.loads((ROOT / 'Cargo.toml').read_text())['package']['version'] + '.hnmod'
         for name in ('content', 'native', 'docs'):
             shutil.copytree(ROOT / name, self.root / name,
                             ignore=shutil.ignore_patterns('target', '__pycache__'))
@@ -87,7 +89,7 @@ class ProjectTests(unittest.TestCase):
     def test_native_archive_reproducibility_and_pins(self):
         command = [sys.executable, str(self.root / 'native/tools/native.py'), 'package', 'powercraft2']
         subprocess.run(command, check=True, capture_output=True)
-        out = self.root / 'native/target/powercraft2-0.3.0.hnmod'
+        out = self.root / 'native/target' / self.native_name
         first = out.read_bytes()
         subprocess.run(command, check=True, capture_output=True)
         self.assertEqual(out.read_bytes(), first)
@@ -118,8 +120,8 @@ class ProjectTests(unittest.TestCase):
         package_content(self.root)
         subprocess.run([sys.executable, str(self.root / 'native/tools/native.py'),
                         'package', 'powercraft2'], check=True, capture_output=True)
-        shutil.copyfile(self.root / 'native/target/powercraft2-0.3.0.hnmod',
-                        self.root / 'dist/powercraft2-0.3.0.hnmod')
+        shutil.copyfile(self.root / 'native/target' / self.native_name,
+                        self.root / 'dist' / self.native_name)
 
     def test_windows_kit_preserves_code_and_both_strict_pins(self):
         self.windows_packages()
@@ -128,10 +130,10 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(windows_kit.prepare(self.root).read_bytes(), first)
         with zipfile.ZipFile(out) as archive:
             descriptor = json.loads(archive.read('native-pinned/horizon-native.json'))
-            original = json.loads(windows_kit.read_zip(self.root / 'dist/powercraft2-0.3.0.hnmod')['horizon-native.json'])
+            original = json.loads(windows_kit.read_zip(self.root / 'dist' / self.native_name)['horizon-native.json'])
             self.assertNotIn('hooks', descriptor)
             self.assertEqual(descriptor, {k: v for k, v in original.items() if k != 'hooks'})
-            for name, data in windows_kit.read_zip(self.root / 'dist/powercraft2-0.3.0.hnmod').items():
+            for name, data in windows_kit.read_zip(self.root / 'dist' / self.native_name).items():
                 if name != 'horizon-native.json':
                     self.assertEqual(archive.read('native-pinned/' + name), data)
             for line in archive.read('SHA256SUMS.txt').decode().splitlines():
@@ -163,7 +165,7 @@ class ProjectTests(unittest.TestCase):
 
     def test_distribution_native_archive_is_strictly_pinned_without_code_changes(self):
         self.windows_packages()
-        original = windows_kit.read_zip(self.root / 'native/target/powercraft2-0.3.0.hnmod')
+        original = windows_kit.read_zip(self.root / 'native/target' / self.native_name)
         out = windows_kit.pin_native(self.root)
         first = out.read_bytes()
         self.assertEqual(windows_kit.pin_native(self.root).read_bytes(), first)
