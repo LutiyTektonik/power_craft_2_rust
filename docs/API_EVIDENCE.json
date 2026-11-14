@@ -110,6 +110,31 @@
       "mod_api": {
         "contract": "listen"
       }
+    },
+    {
+      "name": "screen_draw",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_screen_draw",
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "screen_click",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_screen_click",
+      "mod_api": {
+        "contract": "replace",
+        "out": "button"
+      }
+    },
+    {
+      "name": "menu_button",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_menu_button",
+      "mod_api": {
+        "contract": "listen"
+      }
     }
   ],
   "helpers": [

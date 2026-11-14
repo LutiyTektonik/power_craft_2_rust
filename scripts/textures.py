@@ -61,6 +61,13 @@ def separator(x, y):
     return (177, 192, 208) if color == (245, 184, 48) else color
 
 
+def ejector(x, y):
+    if y in (10, 11, 13, 14) and 3 <= x <= 12:
+        return (229, 95, 52)
+    color = top(x, y)
+    return (234, 132, 81) if color == (245, 184, 48) else color
+
+
 def textures():
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
@@ -70,7 +77,8 @@ def textures():
             'detector_conveyor_powered.png': png(lambda x, y: detector(x, y, True)),
             'redirector_conveyor_top.png': png(redirector),
             'redirector_conveyor_powered.png': png(lambda x, y: redirector(x, y, True)),
-            'separator_conveyor_top.png': png(separator)}
+            'separator_conveyor_top.png': png(separator),
+            'ejector_conveyor_top.png': png(ejector)}
 
 
 if __name__ == '__main__':

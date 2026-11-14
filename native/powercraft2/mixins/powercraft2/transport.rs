@@ -8,6 +8,7 @@ pub const BRAKE_CONVEYOR: &str = "powercraft2:brake_conveyor";
 pub const DETECTOR_CONVEYOR: &str = "powercraft2:detector_conveyor";
 pub const REDIRECTOR_CONVEYOR: &str = "powercraft2:redirector_conveyor";
 pub const SEPARATOR_CONVEYOR: &str = "powercraft2:separator_conveyor";
+pub const EJECTOR_CONVEYOR: &str = "powercraft2:ejector_conveyor";
 pub const SEPARATOR_SLOTS: usize = 18;
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
@@ -23,6 +24,7 @@ pub enum Belt {
     Detector,
     Redirector,
     Separator,
+    Ejector,
 }
 
 impl Belt {
@@ -34,6 +36,7 @@ impl Belt {
             DETECTOR_CONVEYOR => Some(Self::Detector),
             REDIRECTOR_CONVEYOR => Some(Self::Redirector),
             SEPARATOR_CONVEYOR => Some(Self::Separator),
+            EJECTOR_CONVEYOR => Some(Self::Ejector),
             _ => None,
         }
     }
@@ -107,7 +110,7 @@ impl Direction {
         }
     }
 
-    const fn opposite(self) -> Self {
+    pub const fn opposite(self) -> Self {
         self.left().left()
     }
 
@@ -257,7 +260,9 @@ pub fn belt_velocity_for_tick(
     powered: bool,
 ) -> Result<[f64; 3], Error> {
     let config = match belt {
-        Belt::Normal | Belt::Detector | Belt::Redirector | Belt::Separator => config,
+        Belt::Normal | Belt::Detector | Belt::Redirector | Belt::Separator | Belt::Ejector => {
+            config
+        }
         Belt::Speedy => Config::new(config.speed * 2.0, config.centering)?,
         Belt::Brake => Config::new(config.speed * 0.6, config.centering)?,
     };
@@ -411,6 +416,56 @@ pub fn separator_split_positions(
     Some([place(first, second), place(second, first)])
 }
 
+pub const EJECTOR_DEFAULTS: [i32; 4] = [0, 0, 1, 1];
+pub const EJECTOR_LIMITS: [i32; 4] = [2, 2, 54, 5_346];
+
+pub fn ejector_sources(facing: Direction) -> impl Iterator<Item = Direction> {
+    let rear = facing.opposite();
+    std::iter::once(rear).chain(
+        [
+            Direction::North,
+            Direction::East,
+            Direction::South,
+            Direction::West,
+        ]
+        .into_iter()
+        .filter(move |side| *side != rear),
+    )
+}
+
+pub fn ejector_plan(
+    mut slots: Vec<(usize, u32)>,
+    [mode, order, stacks, items]: [i32; 4],
+    mut roll: impl FnMut(usize) -> usize,
+) -> Vec<(usize, u32)> {
+    slots.retain(|(_, count)| *count > 0);
+    slots.sort_unstable_by_key(|(slot, _)| *slot);
+    if mode == 2 {
+        return slots;
+    }
+    match order {
+        1 => slots.reverse(),
+        2 => {
+            for end in (1..slots.len()).rev() {
+                let index = roll(end + 1) % (end + 1);
+                slots.swap(end, index);
+            }
+        }
+        _ => {}
+    }
+    if mode == 0 {
+        slots.truncate(stacks.clamp(0, EJECTOR_LIMITS[2]) as usize);
+        return slots;
+    }
+    let mut remaining = items.clamp(0, EJECTOR_LIMITS[3]) as u32;
+    slots.retain_mut(|(_, count)| {
+        *count = (*count).min(remaining);
+        remaining -= *count;
+        *count > 0
+    });
+    slots
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StorageFace {
     Down,
@@ -456,7 +511,7 @@ pub fn storage_targets(
     // behavior. It shares the same targets, face rules and transfer budget.
     // The original Detector does not unload. Do not extend other variants
     // implicitly when adding their movement behavior.
-    if belt == Belt::Detector {
+    if matches!(belt, Belt::Detector | Belt::Ejector) {
         return Ok([None; 4]);
     }
     let [dx, _, dz] = direction.vector();
@@ -1362,6 +1417,64 @@ mod tests {
             assert_eq!(remaining, expected);
             assert_eq!(remaining + stored, 150);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn ejector_prefers_the_rear_then_checks_other_sides_once() {
+        for facing in DIRECTIONS {
+            let mut sides = ejector_sources(facing);
+            assert_eq!(sides.next(), Some(facing.opposite()));
+            assert!(
+                sides.eq(DIRECTIONS
+                    .into_iter()
+                    .filter(|side| *side != facing.opposite()))
+            );
+        }
+    }
+
+    #[test]
+    fn ejector_selects_whole_stacks_or_an_exact_item_budget() {
+        let slots = vec![(5, 8), (0, 3), (3, 0), (2, 12)];
+        assert_eq!(
+            ejector_plan(slots.clone(), [0, 0, 2, 1], |_| 0),
+            [(0, 3), (2, 12)]
+        );
+        assert_eq!(
+            ejector_plan(slots.clone(), [1, 0, 1, 5], |_| 0),
+            [(0, 3), (2, 2)]
+        );
+        assert_eq!(
+            ejector_plan(slots.clone(), [1, 1, 1, 10], |_| 0),
+            [(5, 8), (2, 2)]
+        );
+        assert!(ejector_plan(slots, [1, 2, 1, 0], |_| 0).is_empty());
+    }
+
+    #[test]
+    fn ejector_random_order_does_not_repeat_slots_and_all_ignores_order() {
+        let slots = vec![(3, 2), (1, 16), (2, 5)];
+        let random = ejector_plan(slots.clone(), [0, 2, 3, 1], |_| 0);
+        assert_eq!(random, [(2, 5), (3, 2), (1, 16)]);
+        let all = ejector_plan(slots, [2, 2, 0, 0], |_| {
+            panic!("all must not sample randomness")
+        });
+        assert_eq!(all, [(1, 16), (2, 5), (3, 2)]);
+    }
+
+    #[test]
+    fn ejector_moves_like_a_normal_belt_without_unloading() -> Result<(), Error> {
+        let item = resting([0.5, 0.25, 0.5]);
+        let block = [0, 0, 0];
+        let facing = Direction::East;
+        assert_eq!(
+            belt_velocity_for_tick(Belt::Ejector, facing, block, item, Config::default(), true)?,
+            velocity_for_tick(facing, block, item, Config::default())?
+        );
+        assert_eq!(
+            storage_targets(Belt::Ejector, facing, block, item, true)?,
+            [None; 4]
+        );
         Ok(())
     }
 

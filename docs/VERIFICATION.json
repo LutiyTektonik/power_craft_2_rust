@@ -5,23 +5,23 @@
   "game": "26.3",
   "rust": "1.95.0",
   "date": "2026-11-15",
-  "native_version": "0.6.0",
-  "content_version": "0.6.0",
-  "logs_directory": "target/verification-separator",
+  "native_version": "0.7.0",
+  "content_version": "0.7.0",
+  "logs_directory": "target/verification-ejector",
   "baseline": {
     "tag": "powercraft2-v0.2.0-tested",
     "description": "Три ленты испытаны пользователем в 0.2.0. Локальный Windows-прогон 0.4.0 зафиксирован ниже."
   },
   "implemented": [
-    "Сортирующая лента с 18 сохраняемыми образцами, двумя группами 3×3 и одним предметом на ячейку.",
-    "Выходы по фильтрам, пропорциональное деление стопок, взвешенный выбор для одиночных предметов и передача в контейнер по выбранному маршруту.",
-    "Рецепт 0.1.0B, блок, предмет, четыре направления, модель, текстура, ru/en и творческая вкладка."
+    "Выбрасывающая лента извлекает из первого подходящего горизонтального контейнера при переходе сигнала 0 → >0, начиная позади.",
+    "Стопки, предметы и всё, первые/последние/случайные слоты. Настройки сохраняются в block entity и меняются в меню.",
+    "Рецепт 0.1.0B: лук, обычная лента, редстоун. Собственные ресурсы и ru/en."
   ],
   "checks": {
     "project": {
       "command": "scripts/check.sh",
       "status": "passed",
-      "rust_tests": 52,
+      "rust_tests": 56,
       "python_tests": 28,
       "log": "logs/project-check.log"
     },
@@ -51,45 +51,8 @@
     },
     "preservation": {
       "status": "passed",
-      "unchanged_content_files": 45,
+      "unchanged_content_files": 53,
       "additive_catalog_files": 3
-    },
-    "windows_gameplay": {
-      "status": "passed",
-      "build": "native-9f42064-b3676ac60aad",
-      "instance": "PowerCraft2-060-Test",
-      "world": "PowerCraft2-060-Acceptance",
-      "redirector_facing": "east",
-      "redirector_routes": {
-        "unpowered": {
-          "east": 16
-        },
-        "powered": {
-          "south": 16
-        },
-        "south_blocked": {
-          "north": 16
-        },
-        "both_sides_blocked": {
-          "east": 16
-        },
-        "side_belts_without_rear": {
-          "north": 16
-        }
-      },
-      "sorter": {
-        "slots": 18,
-        "samples_per_occupied_slot": 1,
-        "left_only": 16,
-        "right_only": 16,
-        "unmatched_forward": 16,
-        "split_2_to_1": [
-          11,
-          5
-        ],
-        "same_filters_after_restart": true
-      },
-      "content_fix": "Убрано повторное объявление facing. Блок наследует свойство шаблона бочки."
     }
   },
   "original_source": {
@@ -132,25 +95,63 @@
   },
   "artifacts": [
     {
-      "path": "dist/powercraft2-0.6.0.hnmod",
-      "bytes": 24561,
-      "sha256": "b34a2629400267e009a747fe0d45810799c99c9645fbf9835b7951e3ea6f1967"
+      "path": "dist/powercraft2-0.7.0.hnmod",
+      "bytes": 29535,
+      "sha256": "e61ba17eec016746332a2635acd303f432662d1c3d5858c1fe910d16d81fd69b"
     },
     {
-      "path": "dist/powercraft2-0.6.0-content.hmod",
-      "bytes": 20610,
-      "sha256": "d62b48978359b3610b514b9d4b4462ff88f187a02ff33bf16f0c22d9150d3288"
+      "path": "dist/powercraft2-0.7.0-content.hmod",
+      "bytes": 23565,
+      "sha256": "11cd607690d3dbbebff45b33441109878ea67a1c3d9e64120fd20207e1e300b8"
     }
   ],
   "not_verified": [
-    "LAN, нагрузка, плавность движения, дополнительные направления и контейнеры вне игрового сценария.",
-    "Выпадение образцов при разрушении, воронки и крафт сортировщика в игре."
+    "Игровой прогон выбрасывающей ленты, включая фронт/удержание, режимы, UI и перезапуск.",
+    "Дополнительные направления и грани контейнеров, LAN и массовая нагрузка."
   ],
   "limitations": [
-    "Фильтры сравнивают ID и повреждение, как в опубликованной версии. Дополнительные компоненты не участвуют в сравнении и сохраняются в стопках.",
-    "Маршрут сущности временный. При повторной загрузке он рассчитывается заново.",
-    "Движение сортировщика видно через штатный трекер Horizon. Плавность переходов, деления и совместимость с другими нативными модами требуют игрового прогона."
+    "Только соседние поддержанные ванильные контейнеры на том же уровне. Вагонетки и сторонние инвентари вне этого этапа.",
+    "Случайный порядок выбирает среди доступных непустых слотов без повторов.",
+    "Меню сохраняет изменения сразу. Выброс использует закреплённый API спавна и проверяет источник перед списанием."
   ],
-  "update": "Для Windows обновить обе части до 0.6.0 и выполнить native rebuild с закреплёнными ревизиями.",
-  "git": "Локальная ветка work/transport-separator на базе aa74ac9 (work/transport-redirector)."
+  "update": "Для Windows обновить обе части до 0.7.0 и выполнить native rebuild с закреплёнными ревизиями.",
+  "git": "Локальная ветка work/transport-ejector на базе d408164 (work/transport-separator).",
+  "previous_separator_windows_test": {
+    "status": "passed",
+    "build": "native-9f42064-b3676ac60aad",
+    "instance": "PowerCraft2-060-Test",
+    "world": "PowerCraft2-060-Acceptance",
+    "redirector_facing": "east",
+    "redirector_routes": {
+      "unpowered": {
+        "east": 16
+      },
+      "powered": {
+        "south": 16
+      },
+      "south_blocked": {
+        "north": 16
+      },
+      "both_sides_blocked": {
+        "east": 16
+      },
+      "side_belts_without_rear": {
+        "north": 16
+      }
+    },
+    "sorter": {
+      "slots": 18,
+      "samples_per_occupied_slot": 1,
+      "left_only": 16,
+      "right_only": 16,
+      "unmatched_forward": 16,
+      "split_2_to_1": [
+        11,
+        5
+      ],
+      "same_filters_after_restart": true
+    },
+    "content_fix": "Убрано повторное объявление facing. Блок наследует свойство шаблона бочки.",
+    "version": "0.6.0"
+  }
 }

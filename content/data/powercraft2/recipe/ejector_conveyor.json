@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "B",
+    "C",
+    "R"
+  ],
+  "key": {
+    "B": "minecraft:bow",
+    "C": "powercraft2:conveyor",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:ejector_conveyor",
+    "count": 1
+  }
+}

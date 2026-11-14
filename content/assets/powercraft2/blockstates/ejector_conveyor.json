@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 0
+    },
+    "facing=down": {
+      "model": "powercraft2:block/ejector_conveyor",
+      "y": 0
+    }
+  }
+}

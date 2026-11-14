@@ -10,6 +10,10 @@ fn powercraft2_detector_tick(
     };
     use horizon_world::level::{EntityQuery, LevelAccess};
 
+    if entity.id == transport::EJECTOR_CONVEYOR {
+        super::powercraft2_ejector::tick(game, pos, entity);
+        return;
+    }
     if entity.id != transport::DETECTOR_CONVEYOR {
         return;
     }

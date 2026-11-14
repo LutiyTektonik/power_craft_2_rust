@@ -57,9 +57,11 @@ def validate(root=ROOT, sources=None):
     require(compat['horizon_mixins_revision'] == lock['mixins']['revision'], 'Mixins pin mismatch')
     require(compat['game'] == lock['horizon']['game'] == '26.3', 'game mismatch')
     require(compat['hooks'] == 381 <= lock['horizon']['hooks_available'], 'hook API mismatch')
-    module, separator = manifest['module']
+    module, separator, ejector = manifest['module']
     require(separator['name'] == 'powercraft2_separator' and separator['file'] == module['file']
             and (bundle / separator['source']).is_file(), 'missing sorting adapter')
+    require(ejector['name'] == 'powercraft2_ejector' and ejector['file'] == module['file']
+            and (bundle / ejector['source']).is_file(), 'missing ejection adapter')
     require(module['name'] == 'powercraft2_transport', 'foreign module name')
     require(module['file'] == 'crates/horizon-client/src/game.rs', 'unexpected destination')
     require((bundle / module['source']).resolve() == (root / cargo['lib']['path']).resolve(), 'runtime source drift')
@@ -68,7 +70,8 @@ def validate(root=ROOT, sources=None):
     available = {h['name']: h for h in evidence['hooks']}
     expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement',
                 'block_entity', 'block_entity_ticks', 'block_entity_tick', 'block_signal', 'is_signal_source',
-                'block_entity_container', 'screen', 'menu_slot_rules'}
+                'block_entity_container', 'screen', 'menu_slot_rules', 'menu_button',
+                'screen_click', 'screen_draw'}
     require({i['hook'] for i in manifest['injection']} == expected, 'unexpected hooks')
     require(len(manifest['injection']) == len(expected), 'duplicate hook')
     for injection in manifest['injection']:
@@ -104,13 +107,14 @@ def validate(root=ROOT, sources=None):
     require(recipe['result'] == {'id': 'powercraft2:conveyor', 'count': 4}, 'recipe result mismatch')
     for name, data in textures().items():
         require((content / 'assets/powercraft2/textures/block' / name).read_bytes() == data, 'texture provenance mismatch')
-    for name in ('speedy_conveyor', 'brake_conveyor', 'detector_conveyor', 'redirector_conveyor', 'separator_conveyor'):
+    for name in ('speedy_conveyor', 'brake_conveyor', 'detector_conveyor', 'redirector_conveyor', 'separator_conveyor', 'ejector_conveyor'):
         definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
-        template = 'minecraft:barrel' if name == 'separator_conveyor' else block['template']
+        inherits_facing = name in ('separator_conveyor', 'ejector_conveyor')
+        template = 'minecraft:barrel' if inherits_facing else block['template']
         require(definition['item'] is True and definition['template'] == template, 'variant registration mismatch')
-        if name == 'separator_conveyor':
+        if inherits_facing:
             require('facing' not in definition.get('state_properties', {}),
-                    'separator inherits facing from the barrel template')
+                    'container belt inherits facing from the barrel template')
         else:
             require(definition['state_properties']['facing'] == facing, 'variant facing mismatch')
         require(definition['shapes']['default'] == definition['collision_shapes']['default'] == shape, 'variant surface mismatch')
@@ -123,7 +127,7 @@ def validate(root=ROOT, sources=None):
             expected_states = {f'facing={d},powered={power}' for d in directions for power in ('false', 'true')}
         else:
             expected_states = {f'facing={d}' for d in directions}
-        if name == 'separator_conveyor':
+        if inherits_facing:
             expected_states |= {'facing=up', 'facing=down'}
         require(set(states) == expected_states, 'missing variant blockstate')
         for state, variant in states.items():
@@ -144,12 +148,22 @@ def validate(root=ROOT, sources=None):
                     and recipe['key'] == {'D': 'minecraft:diamond', 'C': 'powercraft2:conveyor',
                                           'R': 'minecraft:redstone'}
                     and recipe['result']['count'] == 1, 'published separator recipe mismatch')
+        if name == 'ejector_conveyor':
+            require(definition['state_properties'] == {'powered': {'type': 'boolean'}}
+                    and definition['default_state']['powered'] == 'false',
+                    'invalid ejector powered schema')
+            require(recipe['pattern'] == ['B', 'C', 'R']
+                    and recipe['key'] == {'B': 'minecraft:bow', 'C': 'powercraft2:conveyor',
+                                          'R': 'minecraft:redstone'}
+                    and recipe['result']['count'] == 1, 'published ejector recipe mismatch')
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == f'powercraft2:{name}', 'variant loot mismatch')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor'], 'transport tab mismatch')
     menu = read_json(content / 'data/powercraft2/horizon/menu/separator_conveyor.json')
     require(menu == {'slots': 18}, 'separator menu must have two banks of nine slots')
+    menu = read_json(content / 'data/powercraft2/horizon/menu/ejector_conveyor.json')
+    require(menu == {'slots': 1, 'data_slots': 4}, 'ejector menu settings mismatch')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:

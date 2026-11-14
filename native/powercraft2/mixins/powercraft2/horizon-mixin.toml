@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.6.0"
+version = "0.7.0"
 priority = 100
 
 [compatibility]
@@ -154,4 +154,48 @@ helper = "separator_slot_rules.rs"
 bindings = [
   { name = "menu", ty = "&str", value = "menu" },
   { name = "max_stack", ty = "&mut u32", value = "&mut *max_stack" },
+]
+
+[[module]]
+id = "ejector"
+file = "crates/horizon-client/src/game.rs"
+name = "powercraft2_ejector"
+source = "ejector.rs"
+
+[[injection]]
+id = "ejector_menu_button"
+hook = "menu_button"
+hook_version = 1
+kind = "HEAD"
+helper = "ejector_menu_button.rs"
+bindings = [
+  { name = "entity", ty = "&mut horizon_client::mod_api::ModBlockEntity", value = "&mut *entity" },
+  { name = "id", ty = "i32", value = "id" },
+]
+
+[[injection]]
+id = "ejector_screen_click"
+hook = "screen_click"
+hook_version = 1
+kind = "HEAD"
+helper = "ejector_screen_click.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "at", ty = "[f32; 2]", value = "at" },
+  { name = "right", ty = "bool", value = "right" },
+  { name = "button", ty = "&mut Option<i32>", value = "&mut *button" },
+]
+
+[[injection]]
+id = "ejector_screen_draw"
+hook = "screen_draw"
+hook_version = 1
+kind = "HEAD"
+helper = "ejector_screen_draw.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "data", ty = "&[i32]", value = "data" },
+  { name = "batch", ty = "&mut horizon_client::mod_api::HudBatch", value = "&mut *batch" },
+  { name = "origin", ty = "[f32; 2]", value = "origin" },
 ]

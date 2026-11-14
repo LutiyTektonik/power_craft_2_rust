@@ -4,11 +4,17 @@ fn powercraft2_separator_container(
 ) {
     use crate::game::powercraft2_transport as transport;
 
-    if block == transport::SEPARATOR_CONVEYOR && container.is_none() {
-        *container = Some(horizon_client::containers::ModContainer {
-            slots: transport::SEPARATOR_SLOTS,
-            menu: Some(transport::SEPARATOR_CONVEYOR.to_owned()),
-            ..Default::default()
-        });
+    if container.is_some() {
+        return;
     }
+    let slots = match block {
+        transport::SEPARATOR_CONVEYOR => transport::SEPARATOR_SLOTS,
+        transport::EJECTOR_CONVEYOR => 1,
+        _ => return,
+    };
+    *container = Some(horizon_client::containers::ModContainer {
+        slots,
+        menu: Some(block.to_owned()),
+        ..Default::default()
+    });
 }

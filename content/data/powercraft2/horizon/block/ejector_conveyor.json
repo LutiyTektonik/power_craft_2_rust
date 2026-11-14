@@ -1,0 +1,44 @@
+{
+  "template": "minecraft:barrel",
+  "properties": {
+    "hardness": 0.5,
+    "explosion_resistance": 3.0,
+    "requires_tool": false,
+    "sounds": "minecraft:iron_block",
+    "occludes": false
+  },
+  "default_state": {
+    "facing": "north",
+    "powered": "false"
+  },
+  "shapes": {
+    "default": [
+      [
+        0,
+        0,
+        0,
+        1,
+        0.25,
+        1
+      ]
+    ]
+  },
+  "collision_shapes": {
+    "default": [
+      [
+        0,
+        0,
+        0,
+        1,
+        0.25,
+        1
+      ]
+    ]
+  },
+  "item": true,
+  "state_properties": {
+    "powered": {
+      "type": "boolean"
+    }
+  }
+}

@@ -577,8 +577,8 @@
       "module": "transport",
       "object": "ejectionBelt",
       "class": "PCtr_BlockBeltEjector",
-      "comparison": "Отсутствует и требует реализации",
-      "port_status": "Не начата",
+      "comparison": "Перенесён частично",
+      "port_status": "0.7.0: импульс, режимы, меню и извлечение из ванильных контейнеров. Игровая проверка предстоит.",
       "source": "PUBLISHED_MECHANICS.json",
       "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
     },

@@ -4,7 +4,19 @@ fn powercraft2_separator_screen(
 ) {
     use crate::game::powercraft2_transport as transport;
 
-    if block == transport::SEPARATOR_CONVEYOR && screen.is_none() {
+    if screen.is_some() {
+        return;
+    }
+    if block == transport::EJECTOR_CONVEYOR {
+        *screen = Some(horizon_client::mod_api::NativeScreen {
+            width: 204.0,
+            height: 205.0,
+            slots: vec![None],
+            inventory_y: 121.0,
+            inventory_x: 22.0,
+            ..Default::default()
+        });
+    } else if block == transport::SEPARATOR_CONVEYOR {
         let slots = (0..transport::SEPARATOR_SLOTS)
             .map(|index| {
                 let bank = index / 9;

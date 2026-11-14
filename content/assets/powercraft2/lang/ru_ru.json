@@ -5,5 +5,14 @@
   "block.powercraft2.brake_conveyor": "Тормозная конвейерная лента",
   "block.powercraft2.detector_conveyor": "Детекторная конвейерная лента",
   "block.powercraft2.redirector_conveyor": "Перенаправляющая лента",
-  "block.powercraft2.separator_conveyor": "Сортирующая лента"
+  "block.powercraft2.separator_conveyor": "Сортирующая лента",
+  "block.powercraft2.ejector_conveyor": "Выбрасывающая лента",
+  "powercraft2.ejector.mode": "Режим",
+  "powercraft2.ejector.order": "Порядок",
+  "powercraft2.ejector.stacks": "Стопки",
+  "powercraft2.ejector.items": "Предметы",
+  "powercraft2.ejector.all": "Всё",
+  "powercraft2.ejector.first": "Первые",
+  "powercraft2.ejector.last": "Последние",
+  "powercraft2.ejector.random": "Случайно"
 }
