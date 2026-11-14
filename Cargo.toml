@@ -1,0 +1,25 @@
+[package]
+name = "powercraft2"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "Independent conveyor simulation for the PowerCraft 2 Horizon prototype"
+publish = false
+
+[lib]
+path = "native/powercraft2/mixins/powercraft2/transport.rs"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false
