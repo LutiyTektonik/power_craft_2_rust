@@ -67,6 +67,82 @@ fn powercraft2_item_tick(
     else {
         return;
     };
+    if let Ok(mut targets) = transport::storage_targets(belt, direction, block, motion, powered) {
+        // No entity snapshot/allocation on an ordinary line without a target.
+        for target in &mut targets {
+            if let Some(at) = target
+                && (!level.is_loaded(host, at.position)
+                    || !level
+                        .block(host, at.position)
+                        .is_some_and(|name| transport::supports_storage(&name)))
+            {
+                *target = None;
+            }
+        }
+        if targets.iter().any(Option::is_some) {
+            let found = host
+                .item_entities(
+                    dimension,
+                    [
+                        position[0] - 0.125,
+                        position[1] - 0.125,
+                        position[2] - 0.125,
+                    ],
+                    [
+                        position[0] + 0.125,
+                        position[1] + 0.375,
+                        position[2] + 0.125,
+                    ],
+                )
+                .into_iter()
+                .find(|snapshot| snapshot.id == entity);
+            let Some(snapshot) = found else { return };
+            let stack = snapshot.stack;
+            let mut transfer = transport::Transfer::new(stack.count);
+            for target in targets.into_iter().flatten() {
+                let count = transfer.offer();
+                if count == 0 {
+                    break;
+                }
+                use horizon_core::geometry::Direction;
+                let face = match target.face {
+                    transport::StorageFace::Down => Direction::Down,
+                    transport::StorageFace::North => Direction::North,
+                    transport::StorageFace::East => Direction::East,
+                    transport::StorageFace::South => Direction::South,
+                    transport::StorageFace::West => Direction::West,
+                };
+                let offered = horizon_client::items::ItemStack {
+                    count,
+                    ..stack.clone()
+                };
+                let returned = host.insert_item(target.position, face, offered);
+                if transfer
+                    .accept(returned.as_ref().map_or(0, |rest| rest.count))
+                    .is_err()
+                {
+                    log::error!("PowerCraft: native insert_item violated its remainder contract");
+                    return;
+                }
+            }
+            if transfer.remaining() != stack.count {
+                // This synchronous sequence has no await, world swap or
+                // mutable Game callback for the explicitly audited containers.
+                // Preserve every component: only the source count changes.
+                let remaining = horizon_client::items::ItemStack {
+                    count: transfer.remaining(),
+                    ..stack
+                };
+                if !host.set_item_entity(dimension, entity, remaining) {
+                    log::error!("PowerCraft: source item vanished during synchronous insertion");
+                    return;
+                }
+                if transfer.remaining() == 0 {
+                    return;
+                }
+            }
+        }
+    }
     // Do not drive an item across a chunk edge that the server has not loaded.
     // Vanilla still owns collisions, gravity, item saves, merging and pickup.
     let Ok(next_block) = transport::next_support_block(position, next_velocity) else {

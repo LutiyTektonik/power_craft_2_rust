@@ -104,13 +104,19 @@ def prepare(root=ROOT):
         files['CHANGES.md'] = changes.read_bytes()
     for name in ['TESTING.md', 'PORTING_PROGRESS.md', 'ORIGINAL_REGISTRY.md',
                  'ORIGINAL_MECHANICS.json', 'ORIGINAL_SOURCE_INDEX.json',
-                 'BASELINE.md', 'BASELINE_DATA.json', 'COMPATIBILITY.md', 'LEGAL.md']:
+                 'BASELINE.md', 'BASELINE_DATA.json', 'COMPATIBILITY.md', 'LEGAL.md',
+                 'STORAGE_TRANSFER.md', 'PUBLISHED_RELEASE.md', 'PUBLISHED_AUDIT.json',
+                 'PORTING_COMPARISON.json']:
         document = root / 'docs' / name
         if document.exists():
             files[name] = document.read_bytes()
     if report == 'docs/VERIFICATION.json':
-        for log in sorted((root / 'target/verification-transport').glob('*')):
-            if log.is_file():
+        report_data = json.loads((root / report).read_text())
+        logs = (root / report_data.get('logs_directory', 'target/verification-transport')).resolve()
+        if not logs.is_relative_to((root / 'target').resolve()):
+            raise ValueError('Verification logs must stay inside project target')
+        for log in sorted(logs.glob('*')):
+            if log.is_file() and log.suffix in ('.json', '.log'):
                 files['logs/' + log.name] = log.read_bytes()
     elif report.endswith('SMOOTH_MOVEMENT_VERIFICATION.json'):
         for name in ['smooth-project-check.log', 'horizon-smooth-check.log',

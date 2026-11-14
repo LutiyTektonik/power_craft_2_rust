@@ -96,6 +96,14 @@
     {
       "name": "set_block_property_with",
       "target": "horizon_client::game::native_hooks::Game<'_>::native_set_block_property_with"
+    },
+    {
+      "name": "set_item_entity",
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_set_item_entity"
+    },
+    {
+      "name": "insert_item",
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_insert_item"
     }
   ],
   "source_files": [
@@ -134,6 +142,14 @@
     {
       "path": "crates/horizon-mods/src/index/native.rs",
       "git_blob": "bf8a4b99bc4d28411d7660df7825e7d0386ffde0"
+    },
+    {
+      "path": "crates/horizon-client/src/game/machines.rs",
+      "git_blob": "e275f17089a4ff46a2df7c1e60e81c53e601fed8"
+    },
+    {
+      "path": "crates/horizon-client/src/game/machines/native_items.rs",
+      "git_blob": "403c838e92d48b0182776d5839c60c999a511ce2"
     }
   ]
 }

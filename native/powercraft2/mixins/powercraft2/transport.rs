@@ -43,6 +43,7 @@ pub enum Error {
     InvalidConfiguration,
     InvalidEntity,
     NotOnSurface,
+    InvalidTransfer,
 }
 
 impl std::fmt::Display for Error {
@@ -52,6 +53,7 @@ impl std::fmt::Display for Error {
             Self::InvalidConfiguration => "invalid conveyor configuration",
             Self::InvalidEntity => "invalid entity coordinates or velocity",
             Self::NotOnSurface => "item is not resting on the conveyor surface",
+            Self::InvalidTransfer => "inventory returned more items than offered",
         })
     }
 }
@@ -231,6 +233,132 @@ pub fn belt_velocity_for_tick(
         ])
     } else {
         Ok(driven)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StorageFace {
+    Down,
+    North,
+    East,
+    South,
+    West,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StorageTarget {
+    pub position: [i32; 3],
+    pub face: StorageFace,
+}
+
+// These ordinary 1.7.10-era containers have a synchronous insert path in the
+// pinned engine: no mutable Game callback can remove the source item between
+// insert_item and set_item_entity. Do not broaden this without re-auditing
+// view_changed/game events. The engine still owns slot/face/component rules.
+pub fn supports_storage(block: &str) -> bool {
+    matches!(
+        block,
+        "minecraft:chest"
+            | "minecraft:trapped_chest"
+            | "minecraft:furnace"
+            | "minecraft:hopper"
+            | "minecraft:dispenser"
+            | "minecraft:dropper"
+            | "minecraft:brewing_stand"
+    )
+}
+
+pub fn storage_targets(
+    belt: Belt,
+    direction: Direction,
+    block: [i32; 3],
+    item: ItemMotion,
+    powered: bool,
+) -> Result<[Option<StorageTarget>; 4], Error> {
+    // Reuse the tested contact guard, without changing any motion.
+    velocity_for_tick(direction, block, item, Config::default())?;
+    // The published Speedy class does not call storeNearby. Preserve it.
+    if belt == Belt::Speedy {
+        return Ok([None; 4]);
+    }
+    let [dx, _, dz] = direction.vector();
+    let past_center = if dx != 0 {
+        (item.position[0] - f64::from(block[0]) - 0.5) * f64::from(dx) >= 0.0
+    } else {
+        (item.position[2] - f64::from(block[2]) - 0.5) * f64::from(dz) >= 0.0
+    };
+    if !(past_center || belt == Belt::Brake && powered) {
+        return Ok([None; 4]);
+    }
+    let offset = |delta: [i32; 3], face| -> Result<_, Error> {
+        let mut position = block;
+        for axis in 0..3 {
+            position[axis] = position[axis]
+                .checked_add(delta[axis])
+                .ok_or(Error::InvalidEntity)?;
+        }
+        support_block([
+            f64::from(position[0]) + 0.5,
+            f64::from(position[1]) + BELT_HEIGHT,
+            f64::from(position[2]) + 0.5,
+        ])?;
+        Ok(Some(StorageTarget { position, face }))
+    };
+    let front_face = match direction {
+        Direction::North => StorageFace::South,
+        Direction::East => StorageFace::West,
+        Direction::South => StorageFace::North,
+        Direction::West => StorageFace::East,
+    };
+    let (first, second) = if dx != 0 {
+        (
+            offset([0, 0, -1], StorageFace::South)?,
+            offset([0, 0, 1], StorageFace::North)?,
+        )
+    } else {
+        (
+            offset([1, 0, 0], StorageFace::West)?,
+            offset([-1, 0, 0], StorageFace::East)?,
+        )
+    };
+    Ok([
+        offset([dx, 0, dz], front_face)?,
+        first,
+        second,
+        offset([0, 1, 0], StorageFace::Down)?,
+    ])
+}
+
+// One bounded budget shared by all destinations in this entity's Post.
+// Even corrupt oversized world stacks cannot create an unbounded insert loop.
+pub const MAX_TRANSFER_PER_TICK: u32 = 64;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Transfer {
+    source: u32,
+    moved: u32,
+}
+
+impl Transfer {
+    pub fn new(source: u32) -> Self {
+        Self { source, moved: 0 }
+    }
+
+    pub fn offer(self) -> u32 {
+        self.remaining().min(MAX_TRANSFER_PER_TICK - self.moved)
+    }
+
+    pub fn accept(&mut self, returned: u32) -> Result<(), Error> {
+        let accepted = self
+            .offer()
+            .checked_sub(returned)
+            .ok_or(Error::InvalidTransfer)?;
+        self.moved += accepted;
+        Ok(())
+    }
+
+    pub fn remaining(self) -> u32 {
+        self.source - self.moved
     }
 }
 
@@ -771,6 +899,250 @@ mod tests {
             assert_eq!(item.velocity[0], speed);
         }
         assert_eq!(seen, [true; 3]);
+        Ok(())
+    }
+
+    #[test]
+    fn storage_priority_and_receiver_faces_match_original_in_all_directions() -> Result<(), Error> {
+        let at = resting([0.5, 0.25, 0.5]);
+        for (direction, front, face, side1, side2) in [
+            (
+                Direction::North,
+                [0, 0, -1],
+                StorageFace::South,
+                [1, 0, 0],
+                [-1, 0, 0],
+            ),
+            (
+                Direction::East,
+                [1, 0, 0],
+                StorageFace::West,
+                [0, 0, -1],
+                [0, 0, 1],
+            ),
+            (
+                Direction::South,
+                [0, 0, 1],
+                StorageFace::North,
+                [1, 0, 0],
+                [-1, 0, 0],
+            ),
+            (
+                Direction::West,
+                [-1, 0, 0],
+                StorageFace::East,
+                [0, 0, -1],
+                [0, 0, 1],
+            ),
+        ] {
+            let targets = storage_targets(Belt::Normal, direction, [0; 3], at, false)?;
+            assert_eq!(
+                targets[0],
+                Some(StorageTarget {
+                    position: front,
+                    face
+                })
+            );
+            assert_eq!(targets[1].map(|t| t.position), Some(side1));
+            assert_eq!(targets[2].map(|t| t.position), Some(side2));
+            assert_eq!(
+                targets[3],
+                Some(StorageTarget {
+                    position: [0, 1, 0],
+                    face: StorageFace::Down
+                })
+            );
+            assert!(targets.into_iter().flatten().all(|t| t.position[1] >= 0));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn storage_starts_at_center_not_at_entry_or_back_edge() -> Result<(), Error> {
+        for direction in DIRECTIONS {
+            let d = direction.vector();
+            for advance in [-0.1, 0.0, 0.1] {
+                let item = resting([
+                    0.5 + f64::from(d[0]) * advance,
+                    0.25,
+                    0.5 + f64::from(d[2]) * advance,
+                ]);
+                let targets = storage_targets(Belt::Normal, direction, [0; 3], item, false)?;
+                assert_eq!(targets.iter().any(Option::is_some), advance >= 0.0);
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn only_powered_brake_ignores_storage_border() -> Result<(), Error> {
+        let item = resting([0.1, 0.25, 0.5]);
+        assert_eq!(
+            storage_targets(Belt::Brake, Direction::East, [0; 3], item, false)?,
+            [None; 4]
+        );
+        assert!(storage_targets(Belt::Brake, Direction::East, [0; 3], item, true)?[0].is_some());
+        assert_eq!(
+            storage_targets(Belt::Normal, Direction::East, [0; 3], item, true)?,
+            [None; 4]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn speedy_keeps_published_behavior_without_nearby_storage() -> Result<(), Error> {
+        for direction in DIRECTIONS {
+            for powered in [false, true] {
+                assert_eq!(
+                    storage_targets(
+                        Belt::Speedy,
+                        direction,
+                        [0; 3],
+                        resting([0.5, 0.25, 0.5]),
+                        powered
+                    )?,
+                    [None; 4]
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn storage_never_takes_airborne_or_invalid_entities() {
+        for belt in [Belt::Normal, Belt::Brake] {
+            let mut item = resting([0.5, 0.25, 0.5]);
+            item.on_ground = false;
+            assert_eq!(
+                storage_targets(belt, Direction::East, [0; 3], item, true),
+                Err(Error::NotOnSurface)
+            );
+            item.on_ground = true;
+            item.velocity[0] = f64::NAN;
+            assert_eq!(
+                storage_targets(belt, Direction::East, [0; 3], item, true),
+                Err(Error::InvalidEntity)
+            );
+        }
+    }
+
+    #[test]
+    fn storage_coordinates_cross_negative_chunk_seams_safely() -> Result<(), Error> {
+        let item = resting([-16.5, -63.75, -0.5]);
+        let targets = storage_targets(Belt::Normal, Direction::West, [-17, -64, -1], item, false)?;
+        assert_eq!(
+            targets[0],
+            Some(StorageTarget {
+                position: [-18, -64, -1],
+                face: StorageFace::East
+            })
+        );
+        assert!(
+            storage_targets(
+                Belt::Normal,
+                Direction::East,
+                [i32::MAX, 0, 0],
+                resting([0.5, 0.25, 0.5]),
+                false
+            )
+            .is_err()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn only_audited_container_paths_are_enabled() {
+        for name in [
+            "minecraft:chest",
+            "minecraft:trapped_chest",
+            "minecraft:furnace",
+            "minecraft:hopper",
+            "minecraft:dispenser",
+            "minecraft:dropper",
+            "minecraft:brewing_stand",
+        ] {
+            assert!(supports_storage(name));
+        }
+        for name in [
+            "other:chest",
+            "minecraft:composter",
+            "minecraft:jukebox",
+            "minecraft:oak_shelf",
+            "minecraft:barrel",
+            "minecraft:air",
+            "powercraft2:conveyor",
+        ] {
+            assert!(!supports_storage(name));
+        }
+    }
+
+    #[test]
+    fn refused_and_partial_targets_keep_exact_remainder() -> Result<(), Error> {
+        let mut transfer = Transfer::new(100);
+        transfer.accept(64)?;
+        assert_eq!(transfer.remaining(), 100);
+        transfer.accept(10)?;
+        assert_eq!(transfer.remaining(), 46);
+        assert_eq!(transfer.offer(), 10);
+        transfer.accept(0)?;
+        assert_eq!(transfer.remaining(), 36);
+        assert_eq!(transfer.offer(), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn accepted_counts_are_conserved_across_three_destinations() -> Result<(), Error> {
+        for count in 0..=255 {
+            for first in [0, 1, 16, 64, 255] {
+                for second in [0, 1, 16, 64, 255] {
+                    for third in [0, 1, 16, 64, 255] {
+                        let mut transfer = Transfer::new(count);
+                        let mut stored = 0;
+                        for capacity in [first, second, third] {
+                            let offer = transfer.offer();
+                            let accepted = offer.min(capacity);
+                            transfer.accept(offer - accepted)?;
+                            stored += accepted;
+                            assert_eq!(count, stored + transfer.remaining());
+                            assert!(stored <= MAX_TRANSFER_PER_TICK);
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn corrupt_huge_stacks_have_a_bounded_transfer_budget() -> Result<(), Error> {
+        let mut transfer = Transfer::new(u32::MAX);
+        assert_eq!(transfer.offer(), 64);
+        transfer.accept(0)?;
+        assert_eq!(transfer.remaining(), u32::MAX - 64);
+        assert_eq!(transfer.offer(), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_backend_remainder_is_rejected_without_changing_accounting() {
+        let mut transfer = Transfer::new(16);
+        let before = transfer;
+        assert_eq!(transfer.accept(17), Err(Error::InvalidTransfer));
+        assert_eq!(transfer, before);
+    }
+
+    #[test]
+    fn oversized_stack_retries_in_later_ticks_without_extra_items() -> Result<(), Error> {
+        let mut remaining = 150;
+        let mut stored = 0;
+        for expected in [86, 22, 0] {
+            let mut transfer = Transfer::new(remaining);
+            stored += transfer.offer();
+            transfer.accept(0)?;
+            remaining = transfer.remaining();
+            assert_eq!(remaining, expected);
+            assert_eq!(remaining + stored, 150);
+        }
         Ok(())
     }
 }
