@@ -41,6 +41,20 @@ class InventoryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Original source mismatch'):
                 inventory.inventory(root, root)
 
+    def test_published_archive_audit_refuses_changed_jar_before_opening_it(self):
+        spec = importlib.util.spec_from_file_location('published', ROOT / 'scripts/audit-published.py')
+        published = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(published)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'docs').mkdir()
+            (root / 'docs/PUBLISHED_FILES.json').write_text(json.dumps({
+                'repository': 'PowerCraft/Maven', 'revision': '2fce13e3dccd0ec0a9db7dd19416d308509bfa1c',
+                'files': [{'path': 'Changed.jar', 'git_blob': '0' * 40, 'bytes': 1}]}))
+            (root / 'Changed.jar').write_bytes(b'modified archive')
+            with self.assertRaisesRegex(ValueError, 'Published JAR mismatch'):
+                published.audit(root, root=root)
+
 
 if __name__ == '__main__':
     unittest.main()

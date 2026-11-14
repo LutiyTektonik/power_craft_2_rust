@@ -1,0 +1,603 @@
+{
+  "baseline": "powercraft2-v0.2.0-tested",
+  "published_version": "0.1.0B",
+  "policy": "Переносить существующие рабочие механики; экспериментальные/неисправные/незавершённые отложены. Не добавлять новые игровые функции. Сохранить подтверждённые улучшения 0.2.0.",
+  "limits": "Опубликованные JAR проверены статически, Forge не запускался. Наличие class/source и рецепта не является самостоятельным доказательством игрового прохождения оригинала.",
+  "components": [
+    {
+      "name": "Размещение и плавное движение normal/speedy/brake",
+      "comparison": "Уже перенесён и работает",
+      "evidence": "Подтверждение пользователя, база powercraft2-v0.2.0-tested; это не приёмка всех краёв/LAN"
+    },
+    {
+      "name": "Передача normal/brake в семь vanilla-контейнеров",
+      "comparison": "Перенесён частично",
+      "evidence": "0.3.0: реализована, игровая приёмка не выполнена; вагонетки и mod-контейнеры отложены"
+    },
+    {
+      "name": "Ограниченные постоянные скорости и клиентское предсказание Horizon",
+      "comparison": "Является нашим дополнительным функционалом",
+      "evidence": "Проверенная адаптация движения 0.2.0 вместо накопления ускорения Forge; сохраняется"
+    },
+    {
+      "name": "Высота лент 0,25",
+      "comparison": "Является нашим дополнительным функционалом",
+      "evidence": "У опубликованного оригинала 0,0625; наш формат/коллизия и старые миры сохраняются"
+    },
+    {
+      "name": "Стандартный pickup/despawn Horizon на лентах",
+      "comparison": "Является нашим дополнительным функционалом",
+      "evidence": "Оригинал продлевал жизнь и откладывал подбор; проверенное поведение пользователя не изменяется"
+    },
+    {
+      "name": "Рецепты medium из более позднего GitHub: кожа 4/бумага 1 и решётки для brake",
+      "comparison": "Является нашим дополнительным функционалом",
+      "evidence": "Они не совпадают с опубликованной beta 0.1.0B (8/4 и железный слиток); уже присутствовали в 0.2.0 и сохраняются"
+    },
+    {
+      "name": "Logic/Storage/Mobile и незавершённые TODO-подфункции",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "evidence": "Предупреждение автора; на текущем этапе не переносить и не исправлять как часть рабочего содержимого"
+    }
+  ],
+  "registered_objects": [
+    {
+      "module": "core",
+      "object": "powerCrystal",
+      "class": "PCco_BlockPowerCrystal",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "blockSaver",
+      "class": "PCco_BlockBlockSaver",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "powerDust",
+      "class": "PCco_ItemPowerDust",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "activator",
+      "class": "PCco_ItemActivator",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "craftingTool",
+      "class": "PCco_ItemCraftingTool",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "oreSniffer",
+      "class": "PCco_ItemOreSniffer",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "craftingCore",
+      "class": "PCco_ItemCraftingCore",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "formationCore",
+      "class": "PCco_ItemFormationCore",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "annihilationCore",
+      "class": "PCco_ItemAnnihilationCore",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "sensorCore",
+      "class": "PCco_ItemSensorCore",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "core",
+      "object": "spawnerSetter",
+      "class": "PCco_MobSpawnerSetter",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/core/0.1.0B/core-0.1.0B-src.jar"
+    },
+    {
+      "module": "deco",
+      "object": "redstoneStorage",
+      "class": "PCde_BlockRedstoneStorage",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/deco/0.1.0B/deco-0.1.0B-src.jar"
+    },
+    {
+      "module": "deco",
+      "object": "ironFrame",
+      "class": "PCde_BlockIronFrame",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/deco/0.1.0B/deco-0.1.0B-src.jar"
+    },
+    {
+      "module": "deco",
+      "object": "chimney",
+      "class": "PCde_BlockChimney",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/deco/0.1.0B/deco-0.1.0B-src.jar"
+    },
+    {
+      "module": "deco",
+      "object": "platform",
+      "class": "PCde_BlockPlatform",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/deco/0.1.0B/deco-0.1.0B-src.jar"
+    },
+    {
+      "module": "deco",
+      "object": "stairs",
+      "class": "PCde_BlockStairs",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/deco/0.1.0B/deco-0.1.0B-src.jar"
+    },
+    {
+      "module": "hologram",
+      "object": "hologramBlockEmpty",
+      "class": "PChg_BlockHologramBlockEmpty",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/hologram/0.1.0B/hologram-0.1.0B-src.jar"
+    },
+    {
+      "module": "hologram",
+      "object": "hologramField",
+      "class": "PChg_BlockHologramField",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/hologram/0.1.0B/hologram-0.1.0B-src.jar"
+    },
+    {
+      "module": "hologram",
+      "object": "hologramGlasses",
+      "class": "PChg_ItemArmorHologramGlasses",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/hologram/0.1.0B/hologram-0.1.0B-src.jar"
+    },
+    {
+      "module": "hologram",
+      "object": "hologramGlassesOverlay",
+      "class": "PChg_HologramGlassesOverlay",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/hologram/0.1.0B/hologram-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "light",
+      "class": "PCli_BlockLight",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "lightningConductor",
+      "class": "PCli_BlockLightningConductor",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "laser",
+      "class": "PCli_BlockLaser",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "mirror",
+      "class": "PCli_BlockMirror",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "prism",
+      "class": "PCli_BlockPrism",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "laserSensor",
+      "class": "PCli_BlockLaserSensor",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "light",
+      "object": "laserComposition",
+      "class": "PCli_ItemLaserComposition",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/light/0.1.0B/light-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "pulsar",
+      "class": "PClo_BlockPulsar",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "gate",
+      "class": "PClo_BlockGate",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "flipFlop",
+      "class": "PClo_BlockFlipFlop",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "delayer",
+      "class": "PClo_BlockDelayer",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "special",
+      "class": "PClo_BlockSpecial",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "repeater",
+      "class": "PClo_BlockRepeater",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "wire",
+      "class": "PClo_BlockWire",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "logic",
+      "object": "pulsarCore",
+      "class": "PClo_ItemPulsarCore",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/logic/0.1.0B/logic-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "automaticWorkbench",
+      "class": "PCma_BlockAutomaticWorkbench",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "roaster",
+      "class": "PCma_BlockRoaster",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "replacer",
+      "class": "PCma_BlockReplacer",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "transmutabox",
+      "class": "PCma_BlockTransmutabox",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "xpBank",
+      "class": "PCma_BlockXPBank",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "blockBuilder",
+      "class": "PCma_BlockBlockBuilder",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "harvester",
+      "class": "PCma_BlockHarvester",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "fishingMachine",
+      "class": "PCma_BlockFishingMachine",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "machines",
+      "object": "chunkLoader",
+      "class": "PCma_BlockChunkLoader",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/machines/0.1.0B/machines-0.1.0B-src.jar"
+    },
+    {
+      "module": "net",
+      "object": "sensor",
+      "class": "PCnt_BlockSensor",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/net/0.1.0B/net-0.1.0B-src.jar"
+    },
+    {
+      "module": "net",
+      "object": "radio",
+      "class": "PCnt_BlockRadio",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/net/0.1.0B/net-0.1.0B-src.jar"
+    },
+    {
+      "module": "net",
+      "object": "portableTx",
+      "class": "PCnt_ItemRadioRemote",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/net/0.1.0B/net-0.1.0B-src.jar"
+    },
+    {
+      "module": "net",
+      "object": "radioManager",
+      "class": "PCnt_RadioManager",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/net/0.1.0B/net-0.1.0B-src.jar"
+    },
+    {
+      "module": "storage",
+      "object": "bigChest",
+      "class": "PCs_BlockBigChest",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/storage/0.1.0B/storage-0.1.0B-src.jar"
+    },
+    {
+      "module": "storage",
+      "object": "compressor",
+      "class": "PCs_ItemCompressor",
+      "comparison": "Экспериментальный или незавершённый в оригинале",
+      "port_status": "Отложена по указанию пользователя",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/storage/0.1.0B/storage-0.1.0B-src.jar"
+    },
+    {
+      "module": "teleport",
+      "object": "teleporter",
+      "class": "PCtp_BlockTeleporter",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/teleport/0.1.0B/teleport-0.1.0B-src.jar"
+    },
+    {
+      "module": "teleport",
+      "object": "teleporterCore",
+      "class": "PCtp_ItemTeleporterCore",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/teleport/0.1.0B/teleport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "conveyorBelt",
+      "class": "PCtr_BlockBeltNormal",
+      "comparison": "Перенесён частично",
+      "port_status": "Движение подтверждено пользователем в 0.2.0; дополнительные оригинальные действия пока не все перенесены",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "speedyBelt",
+      "class": "PCtr_BlockBeltSpeedy",
+      "comparison": "Перенесён частично",
+      "port_status": "Движение подтверждено пользователем в 0.2.0; дополнительные оригинальные действия пока не все перенесены",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "detectionBelt",
+      "class": "PCtr_BlockBeltDetector",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "breakBelt",
+      "class": "PCtr_BlockBeltBreak",
+      "comparison": "Перенесён частично",
+      "port_status": "Движение подтверждено пользователем в 0.2.0; дополнительные оригинальные действия пока не все перенесены",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "redirectionBelt",
+      "class": "PCtr_BlockBeltRedirector",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "separationBelt",
+      "class": "PCtr_BlockBeltSeparator",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "ejectionBelt",
+      "class": "PCtr_BlockBeltEjector",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "elevator",
+      "class": "PCtr_BlockElevator",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "splitter",
+      "class": "PCtr_BlockSplitter",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    },
+    {
+      "module": "transport",
+      "object": "slimeboots",
+      "class": "PCtr_ItemArmorStickyBoots",
+      "comparison": "Отсутствует и требует реализации",
+      "port_status": "Не начата",
+      "source": "PUBLISHED_MECHANICS.json",
+      "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
+    }
+  ]
+}

@@ -70,6 +70,11 @@ def inventory(source, root=ROOT):
         if blob != entry['git_blob'] or len(data) != entry['bytes']:
             raise ValueError(f'Original source mismatch: {entry["path"]}')
         contents[entry['path']] = data.decode('utf-8')
+    return describe_sources(contents)
+
+
+def describe_sources(contents):
+    """Extract facts; callers separately verify Git source or published JARs."""
     classes = []
     objects = []
     recipes = []
