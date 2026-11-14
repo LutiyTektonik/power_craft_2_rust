@@ -142,5 +142,5 @@
     "Модельные тесты не заменяют игру; полный перенос ещё не завершён"
   ],
   "update": "Обновить обе части 0.4.0 и выполнить native rebuild. Для rollback мира с новым detector нужна подходящая копия. Пины прежние.",
-  "git": "Ветка work/transport-detector. Origin настроен на https://github.com/LutiyTektonik/power_craft_2_rust.git. Коннектор LutiyTektonik-dev имеет pull=true/push=false; CLI-авторизация не прошла проверку. Push/PR не выполнены; удалённые ветки не изменены."
+  "git": "Ветка work/transport-detector. Origin: https://github.com/LutiyTektonik/power_craft_2_rust.git. Повторная проверка 2026-11-14: LutiyTektonik-dev имеет pull=true/push=true. git ls-remote успешен, refs отсутствуют. Git push и create_file через коннектор вернули HTTP 403; коннектор сообщил Resource not accessible by integration. Удалённые файлы/ветки/теги не созданы. Подробности — GITHUB_SYNC.md."
 }
