@@ -18,6 +18,42 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
     // previous position, ground, age, stack, pickup delay or network state.
     for item in &mut game.dropped {
         let position = [item.position.x, item.position.y, item.position.z];
+        let motion = transport::ItemMotion {
+            position,
+            velocity: [item.velocity.x, item.velocity.y, item.velocity.z],
+            on_ground: item.on_ground,
+        };
+        let Ok([x, y, z]) = transport::occupied_block(position) else {
+            continue;
+        };
+        if let Some(state) = registry.state(world.block(x, y, z))
+            && let Some(elevator) = transport::Elevator::from_block(&state.name)
+        {
+            let powered = state
+                .properties
+                .get("powered")
+                .is_some_and(|value| value == "true");
+            if let Ok([vx, vy, vz]) =
+                transport::elevator_velocity(elevator, [x, y, z], motion, powered, |[x, y, z]| {
+                    if !world.chunks.contains_key(&(x >> 4, z >> 4)) {
+                        return transport::ElevatorCell::Other;
+                    }
+                    registry.state(world.block(x, y, z)).map_or(
+                        transport::ElevatorCell::Other,
+                        |state| {
+                            transport::ElevatorCell::from_block(
+                                &state.name,
+                                state.properties.get("facing").map(String::as_str),
+                                elevator,
+                            )
+                        },
+                    )
+                })
+            {
+                item.velocity = Vec3::new(vx, vy, vz);
+            }
+            continue;
+        }
         let Ok(block) = transport::support_block(position) else {
             continue;
         };
@@ -49,11 +85,6 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
         };
         let Ok(direction) = transport::Direction::try_from(facing.as_str()) else {
             continue;
-        };
-        let motion = transport::ItemMotion {
-            position,
-            velocity: [item.velocity.x, item.velocity.y, item.velocity.z],
-            on_ground: item.on_ground,
         };
         let route = if belt == transport::Belt::Redirector {
             transport::redirect_direction(direction, powered, |side| {

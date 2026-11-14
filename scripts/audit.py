@@ -57,11 +57,13 @@ def validate(root=ROOT, sources=None):
     require(compat['horizon_mixins_revision'] == lock['mixins']['revision'], 'Mixins pin mismatch')
     require(compat['game'] == lock['horizon']['game'] == '26.3', 'game mismatch')
     require(compat['hooks'] == 381 <= lock['horizon']['hooks_available'], 'hook API mismatch')
-    module, separator, ejector = manifest['module']
+    module, separator, ejector, elevator = manifest['module']
     require(separator['name'] == 'powercraft2_separator' and separator['file'] == module['file']
             and (bundle / separator['source']).is_file(), 'missing sorting adapter')
     require(ejector['name'] == 'powercraft2_ejector' and ejector['file'] == module['file']
             and (bundle / ejector['source']).is_file(), 'missing ejection adapter')
+    require(elevator['name'] == 'powercraft2_elevator' and elevator['file'] == module['file']
+            and (bundle / elevator['source']).is_file(), 'missing elevator adapter')
     require(module['name'] == 'powercraft2_transport', 'foreign module name')
     require(module['file'] == 'crates/horizon-client/src/game.rs', 'unexpected destination')
     require((bundle / module['source']).resolve() == (root / cargo['lib']['path']).resolve(), 'runtime source drift')
@@ -71,7 +73,7 @@ def validate(root=ROOT, sources=None):
     expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement',
                 'block_entity', 'block_entity_ticks', 'block_entity_tick', 'block_signal', 'is_signal_source',
                 'block_entity_container', 'screen', 'menu_slot_rules', 'menu_button',
-                'screen_click', 'screen_draw'}
+                'screen_click', 'screen_draw', 'update_shape'}
     require({i['hook'] for i in manifest['injection']} == expected, 'unexpected hooks')
     require(len(manifest['injection']) == len(expected), 'duplicate hook')
     for injection in manifest['injection']:
@@ -158,8 +160,42 @@ def validate(root=ROOT, sources=None):
                     and recipe['result']['count'] == 1, 'published ejector recipe mismatch')
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == f'powercraft2:{name}', 'variant loot mismatch')
+    for direction in ('up', 'down'):
+        name = f'elevator_{direction}'
+        identifier = f'powercraft2:{name}'
+        definition = read_json(content / f'data/powercraft2/horizon/block/{name}.json')
+        require(definition['item'] is True and definition['template'] == block['template'],
+                'elevator registration mismatch')
+        schema = {'powered': {'type': 'boolean'}}
+        defaults = {'powered': 'false'}
+        collision = {'default': []}
+        variants = {'': {'model': f'powercraft2:block/{name}'}}
+        key = {'C': 'powercraft2:conveyor', 'G': 'minecraft:gold_ingot'}
+        middle = 'C C'
+        if direction == 'down':
+            schema['base'] = {'type': 'boolean'}
+            defaults['base'] = 'true'
+            collision.update(properties=['base'], values={'true': shape})
+            variants = {'base=false': {'model': f'powercraft2:block/{name}'},
+                        'base=true': {'model': f'powercraft2:block/{name}_base'}}
+            key['R'] = 'minecraft:redstone'
+            middle = 'CRC'
+        require(definition['state_properties'] == schema and definition['default_state'] == defaults,
+                'elevator state mismatch')
+        require(definition['collision_shapes'] == collision, 'elevator collision mismatch')
+        actual = read_json(content / f'assets/powercraft2/blockstates/{name}.json')['variants']
+        require(actual == variants, 'elevator blockstate mismatch')
+        for state in actual.values():
+            model = state['model'].removeprefix('powercraft2:')
+            require((content / f'assets/powercraft2/models/{model}.json').is_file(),
+                    'missing elevator model')
+        recipe = read_json(content / f'data/powercraft2/recipe/{name}.json')
+        require(recipe['pattern'] == ['CGC', middle, 'CGC'] and recipe['key'] == key
+                and recipe['result'] == {'id': identifier, 'count': 6}, 'published elevator recipe mismatch')
+        loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
+        require(loot['pools'][0]['entries'][0]['name'] == identifier, 'wrong elevator drop')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor', 'powercraft2:elevator_up', 'powercraft2:elevator_down'], 'transport tab mismatch')
     menu = read_json(content / 'data/powercraft2/horizon/menu/separator_conveyor.json')
     require(menu == {'slots': 18}, 'separator menu must have two banks of nine slots')
     menu = read_json(content / 'data/powercraft2/horizon/menu/ejector_conveyor.json')

@@ -14,5 +14,7 @@
   "powercraft2.ejector.all": "All",
   "powercraft2.ejector.first": "First",
   "powercraft2.ejector.last": "Last",
-  "powercraft2.ejector.random": "Random"
+  "powercraft2.ejector.random": "Random",
+  "block.powercraft2.elevator_up": "Up Elevator",
+  "block.powercraft2.elevator_down": "Down Elevator"
 }

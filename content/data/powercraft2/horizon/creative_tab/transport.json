@@ -8,6 +8,8 @@
     "powercraft2:detector_conveyor",
     "powercraft2:redirector_conveyor",
     "powercraft2:separator_conveyor",
-    "powercraft2:ejector_conveyor"
+    "powercraft2:ejector_conveyor",
+    "powercraft2:elevator_up",
+    "powercraft2:elevator_down"
   ]
 }

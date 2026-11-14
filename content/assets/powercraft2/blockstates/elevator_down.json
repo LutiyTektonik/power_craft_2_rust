@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "base=true": {
+      "model": "powercraft2:block/elevator_down_base"
+    },
+    "base=false": {
+      "model": "powercraft2:block/elevator_down"
+    }
+  }
+}

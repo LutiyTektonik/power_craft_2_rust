@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "powercraft2:block/elevator_up"
+  }
+}

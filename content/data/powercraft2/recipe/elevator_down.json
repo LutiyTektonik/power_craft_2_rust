@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CGC",
+    "CRC",
+    "CGC"
+  ],
+  "key": {
+    "C": "powercraft2:conveyor",
+    "G": "minecraft:gold_ingot",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "powercraft2:elevator_down",
+    "count": 6
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "template": "minecraft:iron_block",
+  "properties": {
+    "hardness": 0.5,
+    "explosion_resistance": 3.0,
+    "requires_tool": false,
+    "sounds": "minecraft:iron_block",
+    "occludes": false
+  },
+  "state_properties": {
+    "powered": {
+      "type": "boolean"
+    },
+    "base": {
+      "type": "boolean"
+    }
+  },
+  "default_state": {
+    "powered": "false",
+    "base": "true"
+  },
+  "shapes": {
+    "properties": [
+      "base"
+    ],
+    "values": {
+      "true": [
+        [
+          0,
+          0,
+          0,
+          0.125,
+          1,
+          0.125
+        ],
+        [
+          0,
+          0,
+          0.875,
+          0.125,
+          1,
+          1.0
+        ],
+        [
+          0.875,
+          0,
+          0,
+          1.0,
+          1,
+          0.125
+        ],
+        [
+          0.875,
+          0,
+          0.875,
+          1.0,
+          1,
+          1.0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0.25,
+          1
+        ]
+      ]
+    },
+    "default": [
+      [
+        0,
+        0,
+        0,
+        0.125,
+        1,
+        0.125
+      ],
+      [
+        0,
+        0,
+        0.875,
+        0.125,
+        1,
+        1.0
+      ],
+      [
+        0.875,
+        0,
+        0,
+        1.0,
+        1,
+        0.125
+      ],
+      [
+        0.875,
+        0,
+        0.875,
+        1.0,
+        1,
+        1.0
+      ]
+    ]
+  },
+  "collision_shapes": {
+    "properties": [
+      "base"
+    ],
+    "values": {
+      "true": [
+        [
+          0,
+          0,
+          0,
+          1,
+          0.25,
+          1
+        ]
+      ]
+    },
+    "default": []
+  },
+  "item": true
+}

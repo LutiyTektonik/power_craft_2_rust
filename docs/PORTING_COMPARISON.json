@@ -586,8 +586,8 @@
       "module": "transport",
       "object": "elevator",
       "class": "PCtr_BlockElevator",
-      "comparison": "Отсутствует и требует реализации",
-      "port_status": "Не начата",
+      "comparison": "Перенесён частично",
+      "port_status": "0.8.0: две колонны для выпавших предметов, площадка, ленты, шесть граней ванильных контейнеров, редстоун и оба рецепта. Игровая приёмка, движение других сущностей и вагонетки предстоят.",
       "source": "PUBLISHED_MECHANICS.json",
       "published_archive": "1.7.10/powercraft/transport/0.1.0B/transport-0.1.0B-src.jar"
     },

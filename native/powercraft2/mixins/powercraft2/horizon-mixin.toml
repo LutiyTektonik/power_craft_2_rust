@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.7.0"
+version = "0.8.0"
 priority = 100
 
 [compatibility]
@@ -198,4 +198,24 @@ bindings = [
   { name = "data", ty = "&[i32]", value = "data" },
   { name = "batch", ty = "&mut horizon_client::mod_api::HudBatch", value = "&mut *batch" },
   { name = "origin", ty = "[f32; 2]", value = "origin" },
+]
+
+[[module]]
+id = "elevator"
+file = "crates/horizon-client/src/game.rs"
+name = "powercraft2_elevator"
+source = "elevator.rs"
+
+[[injection]]
+id = "elevator_base_shape"
+hook = "update_shape"
+hook_version = 1
+kind = "HEAD"
+helper = "elevator_shape.rs"
+bindings = [
+  { name = "level", ty = "&crate::game::GameLevel<'_>", value = "self" },
+  { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
+  { name = "direction", ty = "horizon_core::geometry::Direction", value = "direction" },
+  { name = "neighbour", ty = "horizon_world::registry::BlockStateId", value = "neighbour" },
+  { name = "new", ty = "&mut Option<horizon_world::registry::BlockStateId>", value = "&mut *new" },
 ]

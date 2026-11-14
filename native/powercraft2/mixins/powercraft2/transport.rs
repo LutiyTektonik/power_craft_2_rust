@@ -9,6 +9,8 @@ pub const DETECTOR_CONVEYOR: &str = "powercraft2:detector_conveyor";
 pub const REDIRECTOR_CONVEYOR: &str = "powercraft2:redirector_conveyor";
 pub const SEPARATOR_CONVEYOR: &str = "powercraft2:separator_conveyor";
 pub const EJECTOR_CONVEYOR: &str = "powercraft2:ejector_conveyor";
+pub const ELEVATOR_UP: &str = "powercraft2:elevator_up";
+pub const ELEVATOR_DOWN: &str = "powercraft2:elevator_down";
 pub const SEPARATOR_SLOTS: usize = 18;
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
@@ -467,8 +469,134 @@ pub fn ejector_plan(
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Elevator {
+    Up,
+    Down,
+}
+
+impl Elevator {
+    pub fn from_block(block: &str) -> Option<Self> {
+        match block {
+            ELEVATOR_UP => Some(Self::Up),
+            ELEVATOR_DOWN => Some(Self::Down),
+            _ => None,
+        }
+    }
+
+    fn offset(self) -> i32 {
+        match self {
+            Self::Up => 1,
+            Self::Down => -1,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ElevatorCell {
+    Air,
+    Belt(Direction),
+    Elevator,
+    Other,
+}
+
+impl ElevatorCell {
+    pub fn from_block(name: &str, facing: Option<&str>, elevator: Elevator) -> Self {
+        if Elevator::from_block(name) == Some(elevator) {
+            Self::Elevator
+        } else if Belt::from_block(name).is_some() {
+            facing
+                .and_then(|value| Direction::try_from(value).ok())
+                .map_or(Self::Other, Self::Belt)
+        } else if matches!(
+            name,
+            "minecraft:air" | "minecraft:cave_air" | "minecraft:void_air"
+        ) {
+            Self::Air
+        } else {
+            Self::Other
+        }
+    }
+}
+
+pub fn occupied_block(position: [f64; 3]) -> Result<[i32; 3], Error> {
+    let [x, _, z] = support_block(position)?;
+    Ok([x, position[1].floor() as i32, z])
+}
+
+pub fn elevator_velocity(
+    elevator: Elevator,
+    block: [i32; 3],
+    item: ItemMotion,
+    powered: bool,
+    mut cell: impl FnMut([i32; 3]) -> ElevatorCell,
+) -> Result<[f64; 3], Error> {
+    if occupied_block(item.position)? != block {
+        return Err(Error::NotOnSurface);
+    }
+    if !item.velocity.iter().all(|axis| axis.is_finite()) {
+        return Err(Error::InvalidEntity);
+    }
+    let [x, y, z] = block;
+    let [px, py, pz] = item.position;
+    let height = py - f64::from(y);
+    let continue_column = !powered && cell([x, y + elevator.offset(), z]) == ElevatorCell::Elevator;
+    let exit_height = match elevator {
+        Elevator::Up => height >= 0.30,
+        Elevator::Down => height <= 0.60,
+    };
+    let center = |offset: f64| offset.clamp(-DEFAULT_CENTERING, DEFAULT_CENTERING);
+    // Compensate vanilla item gravity while steering onto the quarter-block belt.
+    let settle = |target: f64| 0.04 + ((target - height) * 0.5).clamp(-0.16, 0.19);
+    let mut vx = center(f64::from(x) + 0.5 - px);
+    let mut vz = center(f64::from(z) + 0.5 - pz);
+    if exit_height {
+        for direction in [
+            Direction::East,
+            Direction::West,
+            Direction::South,
+            Direction::North,
+        ] {
+            let [next_x, _, next_z] = direction.neighbor(block);
+            if matches!(cell([next_x, y, next_z]), ElevatorCell::Belt(facing) if facing != direction.opposite())
+                && cell([next_x, y + 1, next_z]) == ElevatorCell::Air
+            {
+                let [dx, _, dz] = direction.vector();
+                if dx != 0 {
+                    vx = f64::from(dx) * DEFAULT_SPEED;
+                } else {
+                    vz = f64::from(dz) * DEFAULT_SPEED;
+                }
+                return Ok([vx, settle(0.38), vz]);
+            }
+        }
+    }
+    let vy = match (elevator, continue_column, powered) {
+        (Elevator::Up, true, _) => 0.30,
+        (Elevator::Down, true, _) => -0.20,
+        (_, _, true) => settle(0.38),
+        (Elevator::Up, false, false) => settle(0.38),
+        (Elevator::Down, false, false) => settle(0.28),
+    };
+    Ok([vx, vy, vz])
+}
+
+pub fn elevator_storage_targets([x, y, z]: [i32; 3]) -> [Option<StorageTarget>; 6] {
+    use StorageFace::{Down, East, North, South, Up, West};
+    [
+        ([x, y, z - 1], South),
+        ([x, y, z + 1], North),
+        ([x - 1, y, z], East),
+        ([x + 1, y, z], West),
+        ([x, y + 1, z], Down),
+        ([x, y - 1, z], Up),
+    ]
+    .map(|(position, face)| Some(StorageTarget { position, face }))
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StorageFace {
     Down,
+    Up,
     North,
     East,
     South,
@@ -1418,6 +1546,102 @@ mod tests {
             assert_eq!(remaining + stored, 150);
         }
         Ok(())
+    }
+
+    #[test]
+    fn elevator_moves_within_a_column_and_holds_at_its_end() -> Result<(), Error> {
+        let block = [-16, 2, 15];
+        let middle = resting([-15.5, 2.38, 15.5]);
+        let above = |at| {
+            if at == [-16, 3, 15] {
+                ElevatorCell::Elevator
+            } else {
+                ElevatorCell::Other
+            }
+        };
+        let below = |at| {
+            if at == [-16, 1, 15] {
+                ElevatorCell::Elevator
+            } else {
+                ElevatorCell::Other
+            }
+        };
+        assert_eq!(
+            elevator_velocity(Elevator::Up, block, middle, false, above)?,
+            [0.0, 0.30, 0.0]
+        );
+        assert_eq!(
+            elevator_velocity(Elevator::Down, block, middle, false, below)?,
+            [0.0, -0.20, 0.0]
+        );
+        let powered = elevator_velocity(Elevator::Up, block, middle, true, above)?;
+        assert!((powered[1] - 0.04).abs() < 1e-12);
+        let end = elevator_velocity(Elevator::Down, block, middle, false, |_| {
+            ElevatorCell::Other
+        })?;
+        assert!(end[1] > -0.02 && end[1] < 0.0);
+        assert_eq!(
+            ElevatorCell::from_block(ELEVATOR_DOWN, None, Elevator::Up),
+            ElevatorCell::Other
+        );
+        assert_eq!(
+            ElevatorCell::from_block(ELEVATOR_UP, None, Elevator::Up),
+            ElevatorCell::Elevator
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn elevator_exits_onto_the_first_clear_outgoing_belt() -> Result<(), Error> {
+        let block = [0, 0, 0];
+        let item = resting([0.5, 0.38, 0.5]);
+        let scene = |at: [i32; 3]| match at {
+            [1, 0, 0] => ElevatorCell::Belt(Direction::West),
+            [-1, 0, 0] => ElevatorCell::Belt(Direction::West),
+            [-1, 1, 0] => ElevatorCell::Other,
+            [0, 0, 1] => ElevatorCell::Belt(Direction::South),
+            [0, 1, 0] => ElevatorCell::Elevator,
+            _ => ElevatorCell::Air,
+        };
+        for elevator in [Elevator::Up, Elevator::Down] {
+            for powered in [false, true] {
+                let [vx, vy, vz] = elevator_velocity(elevator, block, item, powered, scene)?;
+                assert_eq!([vx, vz], [0.0, DEFAULT_SPEED]);
+                assert!((vy - 0.04).abs() < 1e-12);
+            }
+        }
+        assert!(elevator_velocity(Elevator::Up, [0, 1, 0], item, false, scene).is_err());
+        assert!(
+            elevator_velocity(
+                Elevator::Up,
+                block,
+                resting([0.5, f64::NAN, 0.5]),
+                false,
+                scene
+            )
+            .is_err()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn elevator_accepts_incoming_belts_and_checks_all_six_container_faces() {
+        use StorageFace::{Down, East, North, South, Up, West};
+        let block = [-16, 2, 15];
+        assert_eq!(occupied_block([-15.5, 2.0, 15.5]), Ok(block));
+        assert_eq!(support_block([-15.5, 2.0, 15.5]), Ok([-16, 1, 15]));
+        let targets = elevator_storage_targets(block);
+        assert_eq!(
+            targets.map(|target| target.map(|t| (t.position, t.face))),
+            [
+                Some(([-16, 2, 14], South)),
+                Some(([-16, 2, 16], North)),
+                Some(([-17, 2, 15], East)),
+                Some(([-15, 2, 15], West)),
+                Some(([-16, 3, 15], Down)),
+                Some(([-16, 1, 15], Up)),
+            ]
+        );
     }
 
     #[test]

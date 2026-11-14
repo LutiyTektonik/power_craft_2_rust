@@ -135,6 +135,15 @@
       "mod_api": {
         "contract": "listen"
       }
+    },
+    {
+      "name": "update_shape",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::GameLevel<'_>::native_update_shape",
+      "mod_api": {
+        "contract": "replace",
+        "out": "new"
+      }
     }
   ],
   "helpers": [
@@ -278,6 +287,14 @@
     {
       "path": "crates/horizon-client/src/game/item_entities.rs",
       "git_blob": "97027e1ea0daf257fc32adc081e9dd807535ca44"
+    },
+    {
+      "path": "crates/horizon-client/src/mod_content.rs",
+      "git_blob": "30f7c46e8422e780b39af8268b27b50c6300ecb3"
+    },
+    {
+      "path": "crates/horizon-client/src/entities.rs",
+      "git_blob": "defdf2bfd1a49d135b9e833698b30fdb703fceb1"
     }
   ]
 }

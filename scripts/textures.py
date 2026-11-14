@@ -68,6 +68,14 @@ def ejector(x, y):
     return (234, 132, 81) if color == (245, 184, 48) else color
 
 
+def elevator(x, y, down=False):
+    color = (78, 176, 229) if down else (232, 184, 65)
+    y = 15-y if down else y
+    if (3 <= y <= 7 and abs(x-7.5) <= y-2) or (8 <= y <= 12 and 6 <= x <= 9):
+        return color
+    return (91, 103, 115) if y in (0, 15) or x in (0, 15) else (48, 57, 67)
+
+
 def textures():
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
@@ -78,7 +86,9 @@ def textures():
             'redirector_conveyor_top.png': png(redirector),
             'redirector_conveyor_powered.png': png(lambda x, y: redirector(x, y, True)),
             'separator_conveyor_top.png': png(separator),
-            'ejector_conveyor_top.png': png(ejector)}
+            'ejector_conveyor_top.png': png(ejector),
+            'elevator_up.png': png(elevator),
+            'elevator_down.png': png(lambda x, y: elevator(x, y, True))}
 
 
 if __name__ == '__main__':
