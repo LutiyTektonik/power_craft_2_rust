@@ -10,6 +10,7 @@ fn powercraft2_separator_container(
     let slots = match block {
         transport::SEPARATOR_CONVEYOR => transport::SEPARATOR_SLOTS,
         transport::EJECTOR_CONVEYOR => 1,
+        transport::SPLITTER => transport::SPLITTER_SLOTS,
         _ => return,
     };
     *container = Some(horizon_client::containers::ModContainer {

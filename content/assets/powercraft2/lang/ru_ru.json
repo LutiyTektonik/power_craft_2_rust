@@ -16,5 +16,12 @@
   "powercraft2.ejector.last": "Последние",
   "powercraft2.ejector.random": "Случайно",
   "block.powercraft2.elevator_up": "Восходящий подъёмник",
-  "block.powercraft2.elevator_down": "Нисходящий подъёмник"
+  "block.powercraft2.elevator_down": "Нисходящий подъёмник",
+  "block.powercraft2.splitter": "Разветвитель",
+  "powercraft2.splitter.down": "Вниз",
+  "powercraft2.splitter.up": "Вверх",
+  "powercraft2.splitter.north": "Сев.",
+  "powercraft2.splitter.south": "Юг",
+  "powercraft2.splitter.west": "Зап.",
+  "powercraft2.splitter.east": "Вост."
 }

@@ -1,6 +1,7 @@
 use super::{Game, powercraft2_transport as transport};
 use horizon_client::{
     containers::BlockEntity,
+    entities::ItemEntity,
     mod_api::{AttachmentType, Holder, Host, RandomSource},
 };
 use horizon_core::geometry::Vec3;
@@ -130,27 +131,13 @@ fn split(
     ) else {
         return;
     };
-    let duration = source.pickup_delay.clamp(0, i64::from(u32::MAX)) as u32;
-    let stack = horizon_client::items::ItemStack {
-        count: secondary.count,
-        ..source.stack.clone()
-    };
-    let Some(child_id) = game.next_entity.checked_add(1) else {
+    let Some(child_id) = spawn_part(game, &source, secondary.count, secondary_at, child_velocity)
+    else {
         return;
     };
-    // The engine can refuse a spawn in its join hooks. Keep the source
-    // whole until the new item and its route exist and the source is unchanged.
-    game.spawn_item(stack.clone(), secondary_at, child_velocity, duration);
     let Some(child_index) = game.dropped.iter().position(|item| item.id == child_id) else {
         return;
     };
-    if game.dropped[child_index].stack != stack
-        || game.dropped[child_index].position
-            != Vec3::new(secondary_at[0], secondary_at[1], secondary_at[2])
-    {
-        game.remove_dropped(child_index);
-        return;
-    }
     let Some(index) = game.dropped.iter().position(|item| {
         item.id == id && item.stack == source.stack && item.position == source.position
     }) else {
@@ -169,7 +156,36 @@ fn split(
         game.remove_dropped(child_index);
         return;
     }
-    let child = &mut game.dropped[child_index];
+    let original = &mut game.dropped[index];
+    original.stack.count = primary.count;
+    original.position = Vec3::new(primary_at[0], primary_at[1], primary_at[2]);
+    original.previous = original.position;
+    original.needs_sync = true;
+}
+
+/// Creates an item with the source's components and lifetime. A join hook can refuse the spawn.
+pub(super) fn spawn_part(
+    game: &mut Game<'_>,
+    source: &ItemEntity,
+    count: u32,
+    position: [f64; 3],
+    velocity: [f64; 3],
+) -> Option<u32> {
+    let duration = source.pickup_delay.clamp(0, i64::from(u32::MAX)) as u32;
+    let stack = horizon_client::items::ItemStack {
+        count,
+        ..source.stack.clone()
+    };
+    let id = game.next_entity.checked_add(1)?;
+    game.spawn_item(stack.clone(), position, velocity, duration);
+    let index = game.dropped.iter().position(|item| item.id == id)?;
+    if game.dropped[index].stack != stack
+        || game.dropped[index].position != Vec3::new(position[0], position[1], position[2])
+    {
+        game.remove_dropped(index);
+        return None;
+    }
+    let child = &mut game.dropped[index];
     child.age = source.age;
     child.pickup_delay = source.pickup_delay;
     child.thrower = source.thrower;
@@ -178,9 +194,5 @@ fn split(
     child.fire_ticks = source.fire_ticks;
     child.no_gravity = source.no_gravity;
     child.on_ground = source.on_ground;
-    let original = &mut game.dropped[index];
-    original.stack.count = primary.count;
-    original.position = Vec3::new(primary_at[0], primary_at[1], primary_at[2]);
-    original.previous = original.position;
-    original.needs_sync = true;
+    Some(id)
 }

@@ -5,7 +5,10 @@ fn powercraft2_block_entity_factory(
     use crate::game::powercraft2_transport as transport;
     if matches!(
         block,
-        transport::DETECTOR_CONVEYOR | transport::SEPARATOR_CONVEYOR | transport::EJECTOR_CONVEYOR
+        transport::DETECTOR_CONVEYOR
+            | transport::SEPARATOR_CONVEYOR
+            | transport::EJECTOR_CONVEYOR
+            | transport::SPLITTER
     ) && entity.is_none()
     {
         *entity = Some((block.to_owned(), horizon_world::nbt::Compound::new()));

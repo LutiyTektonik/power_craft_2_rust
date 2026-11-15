@@ -5,13 +5,13 @@ fn powercraft2_elevator_shape(
     neighbour: horizon_world::registry::BlockStateId,
     new: &mut Option<horizon_world::registry::BlockStateId>,
 ) {
-    use crate::game::powercraft2_transport::ELEVATOR_DOWN;
+    use crate::game::powercraft2_transport::{ELEVATOR_DOWN, elevator_down_has_base};
 
     if new.is_none()
         && direction == horizon_core::geometry::Direction::Down
         && level.native_state_block(state) == Some(ELEVATOR_DOWN)
     {
-        let base = level.native_state_block(neighbour) != Some(ELEVATOR_DOWN);
+        let base = elevator_down_has_base(level.native_state_block(neighbour));
         *new = level.native_state_with_property(state, "base", if base { "true" } else { "false" });
     }
 }

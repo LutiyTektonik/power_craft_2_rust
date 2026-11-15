@@ -7,5 +7,7 @@ fn powercraft2_ejector_screen_draw(
 ) {
     if block == super::powercraft2_transport::EJECTOR_CONVEYOR {
         super::powercraft2_ejector::draw(game, data, batch, origin);
+    } else if block == super::powercraft2_transport::SPLITTER {
+        super::powercraft2_splitter::draw(game, batch, origin);
     }
 }

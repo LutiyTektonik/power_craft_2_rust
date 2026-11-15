@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " U ",
+    "CSC",
+    " D "
+  ],
+  "key": {
+    "U": "powercraft2:elevator_up",
+    "C": "powercraft2:conveyor",
+    "S": "powercraft2:separator_conveyor",
+    "D": "powercraft2:elevator_down"
+  },
+  "result": {
+    "id": "powercraft2:splitter",
+    "count": 1
+  }
+}

@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.8.0"
+version = "0.9.0"
 priority = 100
 
 [compatibility]
@@ -219,3 +219,9 @@ bindings = [
   { name = "neighbour", ty = "horizon_world::registry::BlockStateId", value = "neighbour" },
   { name = "new", ty = "&mut Option<horizon_world::registry::BlockStateId>", value = "&mut *new" },
 ]
+
+[[module]]
+id = "splitter"
+file = "crates/horizon-client/src/game.rs"
+name = "powercraft2_splitter"
+source = "splitter.rs"

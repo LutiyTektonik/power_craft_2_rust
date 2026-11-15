@@ -26,8 +26,14 @@ fn powercraft2_item_tick(
     let Ok(occupied) = transport::occupied_block(position) else {
         return;
     };
-    if let Some(elevator) = level
-        .block(host, occupied)
+    let occupied_name = level.block(host, occupied);
+    if occupied_name.as_deref() == Some(transport::SPLITTER) {
+        super::powercraft2_separator::clear_route(game, entity);
+        super::powercraft2_splitter::tick(game, entity, occupied, position);
+        return;
+    }
+    super::powercraft2_splitter::clear_route(game, entity);
+    if let Some(elevator) = occupied_name
         .as_deref()
         .and_then(transport::Elevator::from_block)
     {
@@ -35,6 +41,7 @@ fn powercraft2_item_tick(
         super::powercraft2_elevator::tick(game, dimension, entity, occupied, position, elevator);
         return;
     }
+    let host: &mut dyn horizon_client::mod_api::Host = game;
     let Some(name) = level.block(host, block) else {
         return;
     };

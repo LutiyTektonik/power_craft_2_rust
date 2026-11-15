@@ -16,6 +16,22 @@ fn powercraft2_separator_screen(
             inventory_x: 22.0,
             ..Default::default()
         });
+    } else if block == transport::SPLITTER {
+        let slots = (0..transport::SPLITTER_SLOTS)
+            .map(|index| {
+                let bank = index / transport::SPLITTER_BANK_SIZE;
+                let row = index % transport::SPLITTER_BANK_SIZE;
+                Some([(16 + bank * 34) as f32, (32 + row * 18) as f32])
+            })
+            .collect();
+        *screen = Some(horizon_client::mod_api::NativeScreen {
+            width: 212.0,
+            height: 204.0,
+            slots,
+            inventory_y: 122.0,
+            inventory_x: 26.0,
+            ..Default::default()
+        });
     } else if block == transport::SEPARATOR_CONVEYOR {
         let slots = (0..transport::SEPARATOR_SLOTS)
             .map(|index| {

@@ -11,6 +11,9 @@ pub const SEPARATOR_CONVEYOR: &str = "powercraft2:separator_conveyor";
 pub const EJECTOR_CONVEYOR: &str = "powercraft2:ejector_conveyor";
 pub const ELEVATOR_UP: &str = "powercraft2:elevator_up";
 pub const ELEVATOR_DOWN: &str = "powercraft2:elevator_down";
+pub const SPLITTER: &str = "powercraft2:splitter";
+pub const SPLITTER_BANK_SIZE: usize = 5;
+pub const SPLITTER_SLOTS: usize = SPLITTER_BANK_SIZE * 6;
 pub const SEPARATOR_SLOTS: usize = 18;
 pub const BELT_HEIGHT: f64 = 0.25;
 pub const DEFAULT_SPEED: f64 = 0.1;
@@ -496,6 +499,7 @@ pub enum ElevatorCell {
     Air,
     Belt(Direction),
     Elevator,
+    Splitter,
     Other,
 }
 
@@ -503,6 +507,8 @@ impl ElevatorCell {
     pub fn from_block(name: &str, facing: Option<&str>, elevator: Elevator) -> Self {
         if Elevator::from_block(name) == Some(elevator) {
             Self::Elevator
+        } else if name == SPLITTER {
+            Self::Splitter
         } else if Belt::from_block(name).is_some() {
             facing
                 .and_then(|value| Direction::try_from(value).ok())
@@ -516,6 +522,10 @@ impl ElevatorCell {
             Self::Other
         }
     }
+}
+
+pub fn elevator_down_has_base(block_below: Option<&str>) -> bool {
+    !matches!(block_below, Some(ELEVATOR_DOWN | SPLITTER))
 }
 
 pub fn occupied_block(position: [f64; 3]) -> Result<[i32; 3], Error> {
@@ -539,7 +549,11 @@ pub fn elevator_velocity(
     let [x, y, z] = block;
     let [px, py, pz] = item.position;
     let height = py - f64::from(y);
-    let continue_column = !powered && cell([x, y + elevator.offset(), z]) == ElevatorCell::Elevator;
+    let continue_column = !powered
+        && matches!(
+            cell([x, y + elevator.offset(), z]),
+            ElevatorCell::Elevator | ElevatorCell::Splitter
+        );
     let exit_height = match elevator {
         Elevator::Up => height >= 0.30,
         Elevator::Down => height <= 0.60,
@@ -557,9 +571,15 @@ pub fn elevator_velocity(
             Direction::North,
         ] {
             let [next_x, _, next_z] = direction.neighbor(block);
-            if matches!(cell([next_x, y, next_z]), ElevatorCell::Belt(facing) if facing != direction.opposite())
-                && cell([next_x, y + 1, next_z]) == ElevatorCell::Air
-            {
+            let accepts = match cell([next_x, y, next_z]) {
+                ElevatorCell::Belt(facing) => {
+                    facing != direction.opposite()
+                        && cell([next_x, y + 1, next_z]) == ElevatorCell::Air
+                }
+                ElevatorCell::Splitter => true,
+                _ => false,
+            };
+            if accepts {
                 let [dx, _, dz] = direction.vector();
                 if dx != 0 {
                     vx = f64::from(dx) * DEFAULT_SPEED;
@@ -591,6 +611,78 @@ pub fn elevator_storage_targets([x, y, z]: [i32; 3]) -> [Option<StorageTarget>; 
         ([x, y - 1, z], Up),
     ]
     .map(|(position, face)| Some(StorageTarget { position, face }))
+}
+
+// Published filter order is the vanilla side order, with down as the default.
+pub const SPLITTER_EXITS: [([i32; 3], StorageFace); 6] = [
+    ([0, -1, 0], StorageFace::Up),
+    ([0, 1, 0], StorageFace::Down),
+    ([0, 0, -1], StorageFace::South),
+    ([0, 0, 1], StorageFace::North),
+    ([-1, 0, 0], StorageFace::East),
+    ([1, 0, 0], StorageFace::West),
+];
+
+pub fn splitter_amounts(count: u32, matching_samples: impl IntoIterator<Item = u32>) -> [u32; 6] {
+    let mut weights = [0_u64; 6];
+    for (slot, weight) in matching_samples
+        .into_iter()
+        .take(SPLITTER_SLOTS)
+        .enumerate()
+    {
+        weights[slot / SPLITTER_BANK_SIZE] += u64::from(weight);
+    }
+    let total: u64 = weights.iter().sum();
+    if total == 0 {
+        return [count, 0, 0, 0, 0, 0];
+    }
+    let mut cumulative = 0;
+    let mut previous = 0;
+    weights.map(|weight| {
+        cumulative += weight;
+        let routed = (u128::from(count) * u128::from(cumulative) / u128::from(total)) as u32;
+        let amount = routed - previous;
+        previous = routed;
+        amount
+    })
+}
+
+pub fn splitter_centering(block: [i32; 3], position: [f64; 3]) -> Result<([f64; 3], bool), Error> {
+    if occupied_block(position)? != block {
+        return Err(Error::NotOnSurface);
+    }
+    let [dx, dy, dz] = std::array::from_fn(|axis| position[axis] - f64::from(block[axis]));
+    let x = 0.5 - dx;
+    let z = 0.5 - dz;
+    let horizontal = |offset: f64| offset.clamp(-0.16, 0.16);
+    let gravity = 0.04;
+    let y = gravity + ((0.42 - dy) * 0.5).clamp(-0.16, 0.22);
+    let ready = x.abs() <= 0.125 && z.abs() <= 0.125 && (0.28..=0.65).contains(&dy);
+    Ok(([horizontal(x), y, horizontal(z)], ready))
+}
+
+pub fn splitter_exit_motion(
+    [x, y, z]: [i32; 3],
+    [dx, dy, dz]: [i32; 3],
+    belt_surface: bool,
+) -> ([f64; 3], [f64; 3]) {
+    let height = if belt_surface {
+        BELT_HEIGHT
+    } else {
+        0.42 - 0.2 * f64::from(dy)
+    };
+    (
+        [
+            f64::from(x) + 0.5,
+            f64::from(y) + height,
+            f64::from(z) + 0.5,
+        ],
+        [
+            f64::from(dx) * DEFAULT_SPEED,
+            0.24 * f64::from(dy),
+            f64::from(dz) * DEFAULT_SPEED,
+        ],
+    )
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1549,6 +1641,52 @@ mod tests {
     }
 
     #[test]
+    fn splitter_uses_stack_weights_in_published_side_order() {
+        let mut samples = [0; SPLITTER_SLOTS];
+        assert_eq!(splitter_amounts(16, samples), [16, 0, 0, 0, 0, 0]);
+        samples[14] = 2;
+        samples[25] = 1;
+        assert_eq!(splitter_amounts(16, samples), [0, 0, 10, 0, 0, 6]);
+        assert_eq!(splitter_amounts(1, samples), [0, 0, 0, 0, 0, 1]);
+        assert_eq!(splitter_amounts(9, [1; SPLITTER_SLOTS]), [1, 2, 1, 2, 1, 2]);
+        assert_eq!(
+            splitter_amounts(u32::MAX, [u32::MAX; SPLITTER_SLOTS])
+                .into_iter()
+                .map(u64::from)
+                .sum::<u64>(),
+            u64::from(u32::MAX)
+        );
+        assert_eq!(splitter_amounts(0, samples), [0; 6]);
+    }
+
+    #[test]
+    fn splitter_exit_centers_keep_different_parts_out_of_merge_range() -> Result<(), Error> {
+        let block = [-16, 3, 15];
+        let position = [-15.5, 3.42, 15.5];
+        let (hold, ready) = splitter_centering(block, position)?;
+        assert!(ready);
+        assert_eq!([hold[0], hold[2]], [0.0, 0.0]);
+        assert!(!splitter_centering(block, [-15.99, 3.25, 15.5])?.1);
+        let exits = SPLITTER_EXITS.map(|(offset, _)| {
+            let target = std::array::from_fn(|axis| block[axis] + offset[axis]);
+            let (at, _) = splitter_exit_motion(target, offset, offset[1] == 0);
+            assert_eq!(occupied_block(at)?, target);
+            Ok(at)
+        });
+        for (n, first) in exits.iter().enumerate() {
+            for second in &exits[n + 1..] {
+                let [a, b] = [(*first)?, (*second)?];
+                assert!(
+                    (a[0] - b[0]).abs() >= 0.75
+                        || (a[2] - b[2]).abs() >= 0.75
+                        || (a[1] - b[1]).abs() >= 0.25
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
     fn elevator_moves_within_a_column_and_holds_at_its_end() -> Result<(), Error> {
         let block = [-16, 2, 15];
         let middle = resting([-15.5, 2.38, 15.5]);
@@ -1588,6 +1726,28 @@ mod tests {
             ElevatorCell::from_block(ELEVATOR_UP, None, Elevator::Up),
             ElevatorCell::Elevator
         );
+        Ok(())
+    }
+
+    #[test]
+    fn elevator_feeds_a_splitter_without_a_platform_between_them() -> Result<(), Error> {
+        let at = [0, 0, 0];
+        let item = resting([0.5, 0.42, 0.5]);
+        let below = |position| {
+            if position == [0, -1, 0] {
+                ElevatorCell::from_block(SPLITTER, None, Elevator::Down)
+            } else {
+                ElevatorCell::Other
+            }
+        };
+        assert_eq!(
+            elevator_velocity(Elevator::Down, at, item, false, below)?,
+            [0.0, -0.20, 0.0]
+        );
+        assert!(!elevator_down_has_base(Some(SPLITTER)));
+        assert!(!elevator_down_has_base(Some(ELEVATOR_DOWN)));
+        assert!(elevator_down_has_base(Some(ELEVATOR_UP)));
+        assert!(elevator_down_has_base(None));
         Ok(())
     }
 

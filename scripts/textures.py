@@ -76,7 +76,22 @@ def elevator(x, y, down=False):
     return (91, 103, 115) if y in (0, 15) or x in (0, 15) else (48, 57, 67)
 
 
+def splitter_plate(x, y, color):
+    if x in (0, 15) or y in (0, 15):
+        return (41, 49, 59)
+    if x in (1, 14) or y in (1, 14):
+        return (120, 130, 139)
+    if (4 <= y <= 8 and abs(x - 7.5) <= y - 3) or (8 < y <= 11 and 6 <= x <= 9):
+        return color
+    return (64, 72, 82)
+
+
 def textures():
+    face_colors = {
+        'down': (73, 192, 255), 'up': (255, 76, 123),
+        'north': (255, 136, 73), 'south': (232, 255, 66),
+        'west': (76, 255, 127), 'east': (81, 73, 255),
+    }
     return {'conveyor_top.png': png(top), 'conveyor_side.png': png(side),
             'speedy_conveyor_top.png': png(speedy),
             'brake_conveyor_top.png': png(brake),
@@ -88,7 +103,9 @@ def textures():
             'separator_conveyor_top.png': png(separator),
             'ejector_conveyor_top.png': png(ejector),
             'elevator_up.png': png(elevator),
-            'elevator_down.png': png(lambda x, y: elevator(x, y, True))}
+            'elevator_down.png': png(lambda x, y: elevator(x, y, True)),
+            **{f'splitter_{face}.png': png(lambda x, y: splitter_plate(x, y, color))
+               for face, color in face_colors.items()}}
 
 
 if __name__ == '__main__':

@@ -94,15 +94,7 @@ pub(super) fn unload(
             if count == 0 {
                 break;
             }
-            use horizon_core::geometry::Direction;
-            let face = match target.face {
-                transport::StorageFace::Down => Direction::Down,
-                transport::StorageFace::Up => Direction::Up,
-                transport::StorageFace::North => Direction::North,
-                transport::StorageFace::East => Direction::East,
-                transport::StorageFace::South => Direction::South,
-                transport::StorageFace::West => Direction::West,
-            };
+            let face = insertion_face(target.face);
             let offered = horizon_client::items::ItemStack {
                 count,
                 ..stack.clone()
@@ -134,4 +126,16 @@ pub(super) fn unload(
         }
     }
     false
+}
+
+pub(super) fn insertion_face(face: transport::StorageFace) -> horizon_core::geometry::Direction {
+    use horizon_core::geometry::Direction;
+    match face {
+        transport::StorageFace::Down => Direction::Down,
+        transport::StorageFace::Up => Direction::Up,
+        transport::StorageFace::North => Direction::North,
+        transport::StorageFace::East => Direction::East,
+        transport::StorageFace::South => Direction::South,
+        transport::StorageFace::West => Direction::West,
+    }
 }

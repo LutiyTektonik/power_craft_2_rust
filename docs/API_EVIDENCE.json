@@ -295,6 +295,14 @@
     {
       "path": "crates/horizon-client/src/entities.rs",
       "git_blob": "defdf2bfd1a49d135b9e833698b30fdb703fceb1"
+    },
+    {
+      "path": "crates/horizon-world/src/attachments.rs",
+      "git_blob": "118486c11e726fc2c8da0bbdbf31be70c6c73c25"
+    },
+    {
+      "path": "crates/horizon-client/src/game/persist.rs",
+      "git_blob": "fbbceb0658a78badbe1865c8150670af25c033b5"
     }
   ]
 }

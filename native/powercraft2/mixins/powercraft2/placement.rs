@@ -15,7 +15,7 @@ fn powercraft2_placement(
     if name == transport::ELEVATOR_DOWN {
         let at = context.pos;
         let below = level.world.block(at.x, at.y - 1, at.z);
-        let base = level.native_state_block(below) != Some(transport::ELEVATOR_DOWN);
+        let base = transport::elevator_down_has_base(level.native_state_block(below));
         if let Some(placed) =
             level.native_state_with_property(state, "base", if base { "true" } else { "false" })
         {

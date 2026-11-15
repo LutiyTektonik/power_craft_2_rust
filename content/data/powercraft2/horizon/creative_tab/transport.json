@@ -10,6 +10,7 @@
     "powercraft2:separator_conveyor",
     "powercraft2:ejector_conveyor",
     "powercraft2:elevator_up",
-    "powercraft2:elevator_down"
+    "powercraft2:elevator_down",
+    "powercraft2:splitter"
   ]
 }

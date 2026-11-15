@@ -57,13 +57,15 @@ def validate(root=ROOT, sources=None):
     require(compat['horizon_mixins_revision'] == lock['mixins']['revision'], 'Mixins pin mismatch')
     require(compat['game'] == lock['horizon']['game'] == '26.3', 'game mismatch')
     require(compat['hooks'] == 381 <= lock['horizon']['hooks_available'], 'hook API mismatch')
-    module, separator, ejector, elevator = manifest['module']
+    module, separator, ejector, elevator, splitter = manifest['module']
     require(separator['name'] == 'powercraft2_separator' and separator['file'] == module['file']
             and (bundle / separator['source']).is_file(), 'missing sorting adapter')
     require(ejector['name'] == 'powercraft2_ejector' and ejector['file'] == module['file']
             and (bundle / ejector['source']).is_file(), 'missing ejection adapter')
     require(elevator['name'] == 'powercraft2_elevator' and elevator['file'] == module['file']
             and (bundle / elevator['source']).is_file(), 'missing elevator adapter')
+    require(splitter['name'] == 'powercraft2_splitter' and splitter['file'] == module['file']
+            and (bundle / splitter['source']).is_file(), 'missing splitter adapter')
     require(module['name'] == 'powercraft2_transport', 'foreign module name')
     require(module['file'] == 'crates/horizon-client/src/game.rs', 'unexpected destination')
     require((bundle / module['source']).resolve() == (root / cargo['lib']['path']).resolve(), 'runtime source drift')
@@ -195,11 +197,33 @@ def validate(root=ROOT, sources=None):
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == identifier, 'wrong elevator drop')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor', 'powercraft2:elevator_up', 'powercraft2:elevator_down'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor', 'powercraft2:elevator_up', 'powercraft2:elevator_down', 'powercraft2:splitter'], 'transport tab mismatch')
     menu = read_json(content / 'data/powercraft2/horizon/menu/separator_conveyor.json')
     require(menu == {'slots': 18}, 'separator menu must have two banks of nine slots')
     menu = read_json(content / 'data/powercraft2/horizon/menu/ejector_conveyor.json')
     require(menu == {'slots': 1, 'data_slots': 4}, 'ejector menu settings mismatch')
+    splitter_block = read_json(content / 'data/powercraft2/horizon/block/splitter.json')
+    require(splitter_block['template'] == 'minecraft:barrel' and splitter_block['item'] is True
+            and splitter_block['collision_shapes'] == {'default': []}
+            and 'state_properties' not in splitter_block, 'splitter block registration mismatch')
+    splitter_model = 'powercraft2:block/splitter'
+    variants = read_json(content / 'assets/powercraft2/blockstates/splitter.json')['variants']
+    require(variants == {'': {'model': splitter_model}}, 'splitter block model mismatch')
+    item = read_json(content / 'assets/powercraft2/items/splitter.json')
+    require(item['model']['model'] == splitter_model, 'splitter item model mismatch')
+    model = read_json(content / 'assets/powercraft2/models/block/splitter.json')
+    require(len(model['elements']) == len(splitter_block['shapes']['default']) == 10,
+            'splitter shape mismatch')
+    recipe = read_json(content / 'data/powercraft2/recipe/splitter.json')
+    require(recipe['pattern'] == [' U ', 'CSC', ' D ']
+            and recipe['key'] == {'U': 'powercraft2:elevator_up', 'C': 'powercraft2:conveyor',
+                                  'S': 'powercraft2:separator_conveyor', 'D': 'powercraft2:elevator_down'}
+            and recipe['result'] == {'id': 'powercraft2:splitter', 'count': 1},
+            'published splitter recipe mismatch')
+    loot = read_json(content / 'data/powercraft2/loot_table/blocks/splitter.json')
+    require(loot['pools'][0]['entries'][0]['name'] == 'powercraft2:splitter', 'wrong splitter drop')
+    menu = read_json(content / 'data/powercraft2/horizon/menu/splitter.json')
+    require(menu == {'slots': 30}, 'splitter menu must have six banks of five slots')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:

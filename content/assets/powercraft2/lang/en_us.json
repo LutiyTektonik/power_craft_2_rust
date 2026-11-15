@@ -16,5 +16,12 @@
   "powercraft2.ejector.last": "Last",
   "powercraft2.ejector.random": "Random",
   "block.powercraft2.elevator_up": "Up Elevator",
-  "block.powercraft2.elevator_down": "Down Elevator"
+  "block.powercraft2.elevator_down": "Down Elevator",
+  "block.powercraft2.splitter": "Splitter",
+  "powercraft2.splitter.down": "Down",
+  "powercraft2.splitter.up": "Up",
+  "powercraft2.splitter.north": "North",
+  "powercraft2.splitter.south": "South",
+  "powercraft2.splitter.west": "West",
+  "powercraft2.splitter.east": "East"
 }
