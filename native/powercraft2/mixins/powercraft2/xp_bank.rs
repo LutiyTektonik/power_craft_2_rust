@@ -49,11 +49,14 @@ pub(super) fn tick(game: &mut Game<'_>, block: [i32; 3], entity: &mut ModBlockEn
         return;
     }
     let [x, y, z] = block;
+    let room = (CAPACITY - previous) as u32;
     let candidates: Vec<_> = game
         .orbs
         .iter()
         .enumerate()
-        .filter(|(_, orb)| orb.count > 0 && orb.points() > 0 && intersects(orb, block))
+        .filter(|(_, orb)| {
+            orb.count > 0 && (1..=room).contains(&orb.points()) && intersects(orb, block)
+        })
         .take(SCAN_LIMIT)
         .map(|(index, orb)| (index, orb.id))
         .collect();
