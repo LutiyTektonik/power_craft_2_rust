@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RGE",
+    "IXI",
+    "EGR"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "G": "minecraft:gold_ingot",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "X": "powercraft2:power_crystal_cyan"
+  },
+  "result": {
+    "id": "powercraft2:sensor_core",
+    "count": 1
+  }
+}
