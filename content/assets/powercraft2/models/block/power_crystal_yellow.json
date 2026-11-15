@@ -1,0 +1,6 @@
+{
+  "parent": "powercraft2:block/power_crystal_cluster",
+  "textures": {
+    "crystal": "minecraft:block/yellow_stained_glass"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TRT",
+    "EXE",
+    "TRT"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "R": "minecraft:redstone",
+    "T": "minecraft:crafting_table",
+    "X": "powercraft2:power_crystal_red"
+  },
+  "result": {
+    "id": "powercraft2:crafting_core",
+    "count": 1
+  }
+}

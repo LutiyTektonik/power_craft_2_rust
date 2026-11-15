@@ -1,0 +1,8 @@
+{
+  "feature": "powercraft2:power_crystal_chunk",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}
