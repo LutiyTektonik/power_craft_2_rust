@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "powercraft2:xp_bank",
+          "functions": [
+            {
+              "function": "powercraft2:retain_bank_points"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

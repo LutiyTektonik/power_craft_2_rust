@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["ODO", "OGO", "O O"],
+  "key": {
+    "O": "minecraft:obsidian",
+    "D": "minecraft:diamond_block",
+    "G": "minecraft:ghast_tear"
+  },
+  "result": { "id": "powercraft2:xp_bank", "count": 1 }
+}
