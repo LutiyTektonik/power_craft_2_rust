@@ -1,0 +1,195 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "railings": "mask_1"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "railings": "mask_2"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "railings": "mask_1"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "railings": "mask_2"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "railings": "mask_1"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "railings": "mask_2"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "railings": "mask_1"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "railings": "mask_2"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_left",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/stairs_rail_right",
+        "y": 270
+      }
+    }
+  ]
+}

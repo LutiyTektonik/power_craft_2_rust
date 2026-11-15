@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "X X",
+    "X X",
+    "X X"
+  ],
+  "key": {
+    "X": "minecraft:nether_bricks"
+  },
+  "result": {
+    "id": "powercraft2:chimney_nether_brick",
+    "count": 6
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "X X",
+    "X X",
+    "X X"
+  ],
+  "key": {
+    "X": "minecraft:bricks"
+  },
+  "result": {
+    "id": "powercraft2:chimney_brick",
+    "count": 6
+  }
+}

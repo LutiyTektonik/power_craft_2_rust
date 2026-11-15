@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "X  ",
+    "XX ",
+    " XX"
+  ],
+  "key": {
+    "X": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "powercraft2:stairs",
+    "count": 4
+  }
+}
