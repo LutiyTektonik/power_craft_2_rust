@@ -1,0 +1,52 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "powercraft2:block/iron_frame"
+      }
+    },
+    {
+      "when": {
+        "panel_north": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/iron_frame_panel_side"
+      }
+    },
+    {
+      "when": {
+        "panel_east": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/iron_frame_panel_side",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "panel_south": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/iron_frame_panel_side",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "panel_west": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/iron_frame_panel_side",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "panel_up": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/iron_frame_panel_top"
+      }
+    }
+  ]
+}

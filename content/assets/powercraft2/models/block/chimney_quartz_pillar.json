@@ -1,0 +1,7 @@
+{
+  "parent": "powercraft2:block/chimney_shell",
+  "textures": {
+    "surface": "minecraft:block/quartz_pillar",
+    "particle": "minecraft:block/quartz_pillar"
+  }
+}

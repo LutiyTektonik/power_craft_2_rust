@@ -4,6 +4,23 @@
   "items": [
     "powercraft2:redstone_storage",
     "powercraft2:platform",
-    "powercraft2:stairs"
+    "powercraft2:stairs",
+    "powercraft2:iron_frame",
+    "powercraft2:chimney_cobblestone",
+    "powercraft2:chimney_brick",
+    "powercraft2:chimney_stone_brick",
+    "powercraft2:chimney_cracked_stone_brick",
+    "powercraft2:chimney_chiseled_stone_brick",
+    "powercraft2:chimney_sandstone",
+    "powercraft2:chimney_chiseled_sandstone",
+    "powercraft2:chimney_cut_sandstone",
+    "powercraft2:chimney_nether_brick",
+    "powercraft2:chimney_quartz",
+    "powercraft2:chimney_chiseled_quartz",
+    "powercraft2:chimney_quartz_pillar",
+    "powercraft2:chimney_mossy_cobblestone",
+    "powercraft2:chimney_mossy_stone_brick",
+    "powercraft2:chimney_clay",
+    "powercraft2:chimney_iron"
   ]
 }

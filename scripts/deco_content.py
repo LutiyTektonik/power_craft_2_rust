@@ -10,6 +10,24 @@ DATA = ROOT / "data/powercraft2"
 NAMESPACE = "powercraft2"
 FACES = ("north", "east", "south", "west", "up", "down")
 HORIZONTAL = FACES[:4]
+CHIMNEYS = (
+    ("cobblestone", "cobblestone", "cobblestone"),
+    ("brick", "bricks", "bricks"),
+    ("stone_brick", "stone_bricks", "stone_bricks"),
+    ("cracked_stone_brick", "cracked_stone_bricks", "cracked_stone_bricks"),
+    ("chiseled_stone_brick", "chiseled_stone_bricks", "chiseled_stone_bricks"),
+    ("sandstone", "sandstone", "sandstone"),
+    ("chiseled_sandstone", "chiseled_sandstone", "chiseled_sandstone"),
+    ("cut_sandstone", "cut_sandstone", "cut_sandstone"),
+    ("nether_brick", "nether_bricks", "nether_bricks"),
+    ("quartz", "quartz_block", "quartz_block_side"),
+    ("chiseled_quartz", "chiseled_quartz_block", "chiseled_quartz_block"),
+    ("quartz_pillar", "quartz_pillar", "quartz_pillar"),
+    ("mossy_cobblestone", "mossy_cobblestone", "mossy_cobblestone"),
+    ("mossy_stone_brick", "mossy_stone_bricks", "mossy_stone_bricks"),
+    ("clay", "clay", "terracotta"),
+    ("iron", "iron_block", "iron_block"),
+)
 
 PLATFORM_FLOOR = (0, 0, 0, 16, 1, 16)
 PLATFORM_RAIL = (0, 0, 0, 16, 24, 1)
@@ -213,6 +231,65 @@ def redstone_storage():
     blockstates("redstone_storage", variants={"": apply_model("redstone_storage")})
 
 
+def iron_frame():
+    # The frame edges are visible independently of the attachment panels.
+    edges = []
+    for axis in range(3):
+        for a, b in product((0, 13), repeat=2):
+            lower = [a, b]
+            upper = [a + 3, b + 3]
+            lower.insert(axis, 0)
+            upper.insert(axis, 16)
+            edges.append(tuple(lower + upper))
+    full = {"default": [[0, 0, 0, 1, 1, 1]]}
+    panel_faces = (*HORIZONTAL, "up")
+    register_block(
+        "iron_frame",
+        state_properties={f"panel_{face}": {"type": "boolean"} for face in panel_faces},
+        default_state={f"panel_{face}": "false" for face in panel_faces},
+        shapes={"default": normalized(edges)},
+        collision_shapes=full,
+        collision_context_shapes={"item": {"default": []}},
+    )
+    model_parts("iron_frame", [(edge, "surface") for edge in edges])
+    model_parts("iron_frame_panel_side", [((3, 3, 0, 13, 13, 1), "surface")])
+    model_parts("iron_frame_panel_top", [((3, 15, 3, 13, 16, 13), "surface")])
+    parts = [{"apply": apply_model("iron_frame")}]
+    parts.extend({
+        "when": {f"panel_{direction}": "true"},
+        "apply": apply_model("iron_frame_panel_side", turn),
+    } for turn, direction in enumerate(HORIZONTAL))
+    parts.append({
+        "when": {"panel_up": "true"},
+        "apply": apply_model("iron_frame_panel_top"),
+    })
+    blockstates("iron_frame", multipart=parts)
+    shaped_recipe("iron_frame", ["XXX", "X X", "XXX"], "minecraft:iron_ingot", 8)
+
+
+def chimney_variants():
+    shell = [
+        (0, 0, 0, 16, 16, 3),
+        (13, 0, 3, 16, 16, 13),
+        (0, 0, 13, 16, 16, 16),
+        (0, 0, 3, 3, 16, 13),
+    ]
+    model_parts("chimney_shell", [(wall, "surface") for wall in shell])
+    full = {"default": [[0, 0, 0, 1, 1, 1]]}
+    for suffix, ingredient, material in CHIMNEYS:
+        name = f"chimney_{suffix}"
+        register_block(
+            name,
+            shapes={"default": normalized(shell)},
+            collision_shapes=full,
+            collision_context_shapes={"item": {"default": []}},
+        )
+        surface = f"minecraft:block/{material}"
+        model_file(name, parent=model_id("chimney_shell"), textures={"surface": surface, "particle": surface})
+        blockstates(name, variants={"": apply_model(name)})
+        shaped_recipe(name, ["X X", "X X", "X X"], f"minecraft:{ingredient}", 6)
+
+
 def deco_tab(names):
     write(
         DATA / "horizon/creative_tab/deco.json",
@@ -224,7 +301,10 @@ def main():
     redstone_storage()
     platform()
     stairs()
-    deco_tab(["redstone_storage", "platform", "stairs"])
+
+    iron_frame()
+    chimney_variants()
+    deco_tab(["redstone_storage", "platform", "stairs", "iron_frame", *(f"chimney_{name}" for name, _, _ in CHIMNEYS)])
 
 
 if __name__ == "__main__":

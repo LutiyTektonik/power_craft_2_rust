@@ -1,3 +1,4 @@
+use horizon_client::particles::{ParticleOptions, ParticleType};
 use horizon_core::position::BlockPos;
 use horizon_world::{level::PlacementContext, registry::BlockStateId};
 
@@ -8,6 +9,14 @@ use super::{
 
 const PLATFORM: &str = "powercraft2:platform";
 const STAIRS: &str = "powercraft2:stairs";
+const FRAME: &str = "powercraft2:iron_frame";
+const FRAME_PANELS: [(&str, [i32; 3]); 5] = [
+    ("panel_north", [0, 0, -1]),
+    ("panel_east", [1, 0, 0]),
+    ("panel_south", [0, 0, 1]),
+    ("panel_west", [-1, 0, 0]),
+    ("panel_up", [0, 1, 0]),
+];
 const HORIZONTAL: [[i32; 2]; 4] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 const MASKS: [&str; 16] = [
     "mask_0", "mask_1", "mask_2", "mask_3", "mask_4", "mask_5", "mask_6", "mask_7", "mask_8",
@@ -15,7 +24,11 @@ const MASKS: [&str; 16] = [
 ];
 
 pub(super) fn has_block_entity(block: &str) -> bool {
-    matches!(block, PLATFORM | STAIRS)
+    matches!(block, PLATFORM | STAIRS) || is_chimney(block)
+}
+
+fn is_chimney(name: &str) -> bool {
+    name.starts_with("powercraft2:chimney_")
 }
 
 fn is_climbable(name: &str) -> bool {
@@ -104,6 +117,32 @@ fn geometry(
     Some(state)
 }
 
+fn frame_panels(
+    level: &GameLevel<'_>,
+    state: BlockStateId,
+    pos: BlockPos,
+    changed: Option<(BlockPos, BlockStateId)>,
+) -> Option<BlockStateId> {
+    FRAME_PANELS
+        .into_iter()
+        .try_fold(state, |state, (panel, [dx, dy, dz])| {
+            let neighbor = level_block(level, [pos.x + dx, pos.y + dy, pos.z + dz], changed);
+            let filled = matches!(
+                level.native_state_block(neighbor),
+                Some(
+                    "minecraft:torch"
+                        | "minecraft:wall_torch"
+                        | "minecraft:redstone_torch"
+                        | "minecraft:redstone_wall_torch"
+                        | "minecraft:lever"
+                        | "minecraft:stone_button"
+                        | "minecraft:oak_button"
+                )
+            );
+            level.native_state_with_property(state, panel, if filled { "true" } else { "false" })
+        })
+}
+
 pub(super) fn place(
     level: &GameLevel<'_>,
     mut state: BlockStateId,
@@ -114,6 +153,12 @@ pub(super) fn place(
         return;
     }
     let facing = match level.native_state_block(state) {
+        Some(FRAME) => {
+            if let Some(placed) = frame_panels(level, state, context.pos, None) {
+                *answer = Some(Some(placed));
+            }
+            return;
+        }
         Some(PLATFORM) => None,
         Some(STAIRS) => {
             let Ok(facing) = Direction::from_yaw(context.yaw) else {
@@ -145,6 +190,10 @@ pub(super) fn shape(
         return;
     }
     let facing = match level.native_state_block(state) {
+        Some(FRAME) => {
+            *new = frame_panels(level, state, pos, Some((neighbour_pos, neighbour)));
+            return;
+        }
         Some(PLATFORM) => None,
         Some(STAIRS) => level
             .registry
@@ -162,6 +211,10 @@ pub(super) fn tick(
     entity: &horizon_client::mod_api::ModBlockEntity,
 ) {
     let [x, y, z] = pos;
+    if is_chimney(&entity.id) {
+        chimney_tick(game, pos);
+        return;
+    }
     // Only diagonal support changes can miss updateShape. Spread this check over
     // ten ticks, only for the platforms and stairs already loaded and ticking.
     if (game.world.game_time + i64::from(x) + i64::from(y) + i64::from(z)).rem_euclid(10) != 0 {
@@ -188,5 +241,81 @@ pub(super) fn tick(
             if climbable { "false" } else { "true" },
             2,
         );
+    }
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum FlueCell {
+    Air,
+    Chimney,
+    Furnace,
+    Fire,
+    Other,
+}
+
+fn chimney_active(at: [i32; 3], min_y: i32, cell: impl Fn([i32; 3]) -> FlueCell) -> bool {
+    let [x, y, z] = at;
+    if cell([x, y + 1, z]) != FlueCell::Air {
+        return false;
+    }
+
+    for row in (min_y..=y).rev() {
+        if cell([x, row, z]) == FlueCell::Chimney {
+            if HORIZONTAL
+                .iter()
+                .any(|[dx, dz]| cell([x + dx, row, z + dz]) == FlueCell::Furnace)
+            {
+                return true;
+            }
+            continue;
+        }
+
+        // At the foot of the flue, check the surrounding 3×3 area on
+        // this level and the one immediately below it.
+        return ((row - 1).max(min_y)..=row).any(|row| {
+            (-1..=1).any(|dx| {
+                (-1..=1).any(|dz| {
+                    matches!(
+                        cell([x + dx, row, z + dz]),
+                        FlueCell::Furnace | FlueCell::Fire
+                    )
+                })
+            })
+        });
+    }
+    false
+}
+
+fn chimney_tick(game: &mut Game<'_>, at: [i32; 3]) {
+    let [x, y, z] = at;
+    if (game.world.game_time + i64::from(x) + i64::from(z)).rem_euclid(6) != 0 {
+        return;
+    }
+    let active = chimney_active(at, game.native_world_height().0, |[x, y, z]| {
+        let state = game.world.block(x, y, z);
+        let Some(block) = game.pack.assets.registry.state(state) else {
+            return FlueCell::Other;
+        };
+        match block.name.as_str() {
+            "minecraft:air" | "minecraft:cave_air" | "minecraft:void_air" => FlueCell::Air,
+            "minecraft:fire" => FlueCell::Fire,
+            "minecraft:furnace" if block.properties.get("lit").is_some_and(|lit| lit == "true") => {
+                FlueCell::Furnace
+            }
+            name if is_chimney(name) => FlueCell::Chimney,
+            _ => FlueCell::Other,
+        }
+    });
+    if active {
+        game.with_level(|_, level, _| {
+            let _accepted = level.native_send_particles(
+                &ParticleOptions::simple(ParticleType::LargeSmoke),
+                None,
+                [f64::from(x) + 0.4, f64::from(y) + 0.7, f64::from(z) + 0.4],
+                [0.15, 0.18, 0.15],
+                0.0,
+                12,
+            );
+        });
     }
 }

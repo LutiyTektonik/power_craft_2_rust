@@ -16,6 +16,7 @@ class DecoTest(unittest.TestCase):
         for name, rows, count in (
             ("platform", ["X  ", "X  ", "XXX"], 5),
             ("stairs", ["X  ", "XX ", " XX"], 4),
+            ("iron_frame", ["XXX", "X X", "XXX"], 8),
         ):
             with self.subTest(name=name):
                 recipe = read(DATA / f"recipe/{name}.json")
@@ -52,6 +53,52 @@ class DecoTest(unittest.TestCase):
                 self.assertEqual(len(shapes[f"{facing},mask_1"]), 3)
                 self.assertEqual(len(shapes[f"{facing},mask_2"]), 3)
                 self.assertEqual(len(shapes[f"{facing},mask_3"]), 4)
+
+    def test_iron_frame_covers_five_fixture_faces_and_keeps_items_passable(self):
+        definition = read(DATA / "horizon/block/iron_frame.json")
+        state = read(ASSETS / "blockstates/iron_frame.json")
+        panel_keys = {f"panel_{side}" for side in ("north", "east", "south", "west", "up")}
+        self.assertEqual(set(definition["state_properties"]), panel_keys)
+        self.assertEqual(
+            {next(iter(part["when"])) for part in state["multipart"] if "when" in part},
+            panel_keys,
+        )
+        self.assertEqual(definition["collision_shapes"], {"default": [[0, 0, 0, 1, 1, 1]]})
+        self.assertEqual(definition["collision_context_shapes"], {"item": {"default": []}})
+
+    def test_chimney_variants_keep_legacy_materials_and_own_item_drops(self):
+        ingredients = {
+            "cobblestone": "cobblestone",
+            "brick": "bricks",
+            "stone_brick": "stone_bricks",
+            "cracked_stone_brick": "cracked_stone_bricks",
+            "chiseled_stone_brick": "chiseled_stone_bricks",
+            "sandstone": "sandstone",
+            "chiseled_sandstone": "chiseled_sandstone",
+            "cut_sandstone": "cut_sandstone",
+            "nether_brick": "nether_bricks",
+            "quartz": "quartz_block",
+            "chiseled_quartz": "chiseled_quartz_block",
+            "quartz_pillar": "quartz_pillar",
+            "mossy_cobblestone": "mossy_cobblestone",
+            "mossy_stone_brick": "mossy_stone_bricks",
+            "clay": "clay",
+            "iron": "iron_block",
+        }
+        paths = sorted((DATA / "recipe").glob("chimney_*.json"))
+        self.assertEqual(len(paths), len(ingredients))
+        for path in paths:
+            with self.subTest(name=path.stem):
+                name = path.stem
+                recipe = read(path)
+                self.assertEqual(recipe["pattern"], ["X X", "X X", "X X"])
+                self.assertEqual(recipe["key"], {"X": f"minecraft:{ingredients[name.removeprefix('chimney_')]}"})
+                self.assertEqual(recipe["result"], {"id": f"powercraft2:{name}", "count": 6})
+                definition = read(DATA / f"horizon/block/{name}.json")
+                self.assertEqual(len(definition["shapes"]["default"]), 4)
+                self.assertEqual(definition["collision_context_shapes"], {"item": {"default": []}})
+                model = read(ASSETS / f"models/block/{name}.json")
+                self.assertEqual(model["parent"], "powercraft2:block/chimney_shell")
 
     def test_creative_tab_entries_have_models_and_loot(self):
         tab = read(DATA / "horizon/creative_tab/deco.json")
