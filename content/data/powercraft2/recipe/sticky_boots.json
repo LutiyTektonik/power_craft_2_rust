@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "B",
+    "S",
+    "B"
+  ],
+  "key": {
+    "B": "minecraft:iron_boots",
+    "S": "minecraft:slime_ball"
+  },
+  "result": {
+    "id": "powercraft2:sticky_boots",
+    "count": 1
+  }
+}

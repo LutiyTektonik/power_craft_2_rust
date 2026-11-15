@@ -12,6 +12,7 @@ pub const EJECTOR_CONVEYOR: &str = "powercraft2:ejector_conveyor";
 pub const ELEVATOR_UP: &str = "powercraft2:elevator_up";
 pub const ELEVATOR_DOWN: &str = "powercraft2:elevator_down";
 pub const SPLITTER: &str = "powercraft2:splitter";
+pub const STICKY_BOOTS: &str = "powercraft2:sticky_boots";
 pub const SPLITTER_BANK_SIZE: usize = 5;
 pub const SPLITTER_SLOTS: usize = SPLITTER_BANK_SIZE * 6;
 pub const SEPARATOR_SLOTS: usize = 18;
@@ -285,6 +286,37 @@ pub fn belt_velocity_for_tick(
     }
 }
 
+pub fn player_rides(feet: Option<&str>, sneaking: bool) -> bool {
+    !sneaking && feet != Some(STICKY_BOOTS)
+}
+
+pub fn player_belt_velocity(
+    belt: Belt,
+    direction: Direction,
+    block: [i32; 3],
+    player: ItemMotion,
+    powered: bool,
+) -> Result<[f64; 3], Error> {
+    let driven =
+        belt_velocity_for_tick(belt, direction, block, player, Config::default(), powered)?;
+    if belt == Belt::Brake && powered {
+        return Ok(driven);
+    }
+
+    // Add belt thrust to the player's existing motion without replacing strafing,
+    // faster travel or vertical motion. The engine still resolves collisions.
+    let [dx, _, dz] = direction.vector();
+    let (axis, sign) = if dx != 0 { (0, dx) } else { (2, dz) };
+    let sign = f64::from(sign);
+    let speed = driven[axis] * sign;
+    let mut velocity = player.velocity;
+    let forward = velocity[axis] * sign;
+    if forward < speed {
+        velocity[axis] = (forward + speed).min(speed) * sign;
+    }
+    Ok(velocity)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RedirectNeighbor {
     Belt,
@@ -538,6 +570,27 @@ pub fn elevator_velocity(
     block: [i32; 3],
     item: ItemMotion,
     powered: bool,
+    cell: impl FnMut([i32; 3]) -> ElevatorCell,
+) -> Result<[f64; 3], Error> {
+    column_velocity(elevator, block, item, powered, 0.04, cell)
+}
+
+pub fn player_elevator_velocity(
+    elevator: Elevator,
+    block: [i32; 3],
+    player: ItemMotion,
+    powered: bool,
+    cell: impl FnMut([i32; 3]) -> ElevatorCell,
+) -> Result<[f64; 3], Error> {
+    column_velocity(elevator, block, player, powered, 0.0, cell)
+}
+
+fn column_velocity(
+    elevator: Elevator,
+    block: [i32; 3],
+    item: ItemMotion,
+    powered: bool,
+    gravity_compensation: f64,
     mut cell: impl FnMut([i32; 3]) -> ElevatorCell,
 ) -> Result<[f64; 3], Error> {
     if occupied_block(item.position)? != block {
@@ -559,8 +612,8 @@ pub fn elevator_velocity(
         Elevator::Down => height <= 0.60,
     };
     let center = |offset: f64| offset.clamp(-DEFAULT_CENTERING, DEFAULT_CENTERING);
-    // Compensate vanilla item gravity while steering onto the quarter-block belt.
-    let settle = |target: f64| 0.04 + ((target - height) * 0.5).clamp(-0.16, 0.19);
+    // Item gravity is applied before their next move, player gravity after it.
+    let settle = |target: f64| gravity_compensation + ((target - height) * 0.5).clamp(-0.16, 0.19);
     let mut vx = center(f64::from(x) + 0.5 - px);
     let mut vz = center(f64::from(z) + 0.5 - pz);
     if exit_height {
@@ -1637,6 +1690,65 @@ mod tests {
             assert_eq!(remaining, expected);
             assert_eq!(remaining + stored, 150);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn players_on_belts_keep_their_input_and_can_opt_out() -> Result<(), Error> {
+        assert!(player_rides(None, false));
+        assert!(player_rides(Some("minecraft:iron_boots"), false));
+        assert!(!player_rides(Some(STICKY_BOOTS), false));
+        assert!(!player_rides(None, true));
+        let mut player = resting([0.5, BELT_HEIGHT, 0.5]);
+        player.velocity = [-0.04, -0.08, 0.11];
+        let block = [0, 0, 0];
+        for (belt, forward) in [
+            (Belt::Normal, 0.06),
+            (Belt::Speedy, 0.16),
+            (Belt::Brake, 0.02),
+        ] {
+            let next = player_belt_velocity(belt, Direction::East, block, player, false)?;
+            assert!((next[0] - forward).abs() < 1e-12);
+            assert_eq!([next[1], next[2]], [-0.08, 0.11]);
+        }
+        let braked = player_belt_velocity(Belt::Brake, Direction::East, block, player, true)?;
+        assert_eq!(braked, [-0.024, -0.08, 0.066]);
+        player.velocity[0] = 0.35;
+        assert_eq!(
+            player_belt_velocity(Belt::Normal, Direction::East, block, player, false)?,
+            player.velocity
+        );
+        player.on_ground = false;
+        assert_eq!(
+            player_belt_velocity(Belt::Normal, Direction::East, block, player, false),
+            Err(Error::NotOnSurface)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn player_column_shares_routes_without_item_gravity_compensation() -> Result<(), Error> {
+        let block = [0, 0, 0];
+        let player = resting([0.5, 0.38, 0.5]);
+        let above = |at| {
+            if at == [0, 1, 0] {
+                ElevatorCell::Elevator
+            } else {
+                ElevatorCell::Other
+            }
+        };
+        assert_eq!(
+            player_elevator_velocity(Elevator::Up, block, player, false, above)?,
+            [0.0, 0.30, 0.0]
+        );
+        assert_eq!(
+            player_elevator_velocity(Elevator::Up, block, player, true, above)?,
+            [0.0, 0.0, 0.0]
+        );
+        assert_eq!(
+            elevator_velocity(Elevator::Up, block, player, true, above)?,
+            [0.0, 0.04, 0.0]
+        );
         Ok(())
     }
 

@@ -7,6 +7,7 @@ fn powercraft2_client_tick(game: &mut crate::game::Game<'_>) {
     if game.remote.is_none() || !game.native_on(transport::MOD_ID) {
         return;
     }
+    super::powercraft2_player_transport::drive_local(game);
     let world = &game.world;
     let registry = &game.pack.assets.registry;
     let Ok(config) = transport::Config::new(transport::DEFAULT_SPEED, transport::DEFAULT_CENTERING)

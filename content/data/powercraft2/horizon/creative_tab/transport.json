@@ -11,6 +11,7 @@
     "powercraft2:ejector_conveyor",
     "powercraft2:elevator_up",
     "powercraft2:elevator_down",
-    "powercraft2:splitter"
+    "powercraft2:splitter",
+    "powercraft2:sticky_boots"
   ]
 }

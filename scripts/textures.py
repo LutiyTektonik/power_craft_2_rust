@@ -4,13 +4,13 @@ import struct
 import zlib
 
 
-def png(pixel):
+def png(pixel, alpha=False):
     def chunk(kind, data):
         crc = zlib.crc32(kind + data) & 0xFFFFFFFF
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', crc)
 
     raw = b''.join(b'\0' + bytes(c for x in range(16) for c in pixel(x, y)) for y in range(16))
-    header = struct.pack('>IIBBBBB', 16, 16, 8, 2, 0, 0, 0)
+    header = struct.pack('>IIBBBBB', 16, 16, 8, 6 if alpha else 2, 0, 0, 0)
     return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', header) + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b'')
 
 
@@ -108,9 +108,29 @@ def textures():
                for face, color in face_colors.items()}}
 
 
+def sticky_boots(x, y):
+    for left in (1, 8):
+        local_x = x - left
+        body = 2 <= local_x <= 5 and 3 <= y <= 10
+        sole = 0 <= local_x <= 5 and 10 <= y <= 13
+        if body or sole:
+            if y == 13 or local_x in (0, 5) or y == 3:
+                return (42, 64, 53, 255)
+            if y >= 10:
+                return (106, 198, 87, 255) if (x + y) % 3 else (159, 222, 110, 255)
+            return (136, 161, 151, 255) if local_x == 3 else (91, 122, 109, 255)
+    return (0, 0, 0, 0)
+
+
+def item_textures():
+    return {'sticky_boots.png': png(sticky_boots, alpha=True)}
+
+
 if __name__ == '__main__':
     from pathlib import Path
-    root = Path(__file__).resolve().parents[1] / 'content/assets/powercraft2/textures/block'
-    root.mkdir(parents=True, exist_ok=True)
-    for name, data in textures().items():
-        (root / name).write_bytes(data)
+    root = Path(__file__).resolve().parents[1] / 'content/assets/powercraft2/textures'
+    for subdir, generated in (('block', textures()), ('item', item_textures())):
+        output = root / subdir
+        output.mkdir(parents=True, exist_ok=True)
+        for name, data in generated.items():
+            (output / name).write_bytes(data)

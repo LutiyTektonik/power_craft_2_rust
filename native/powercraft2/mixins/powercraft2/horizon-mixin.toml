@@ -1,6 +1,6 @@
 [mod]
 id = "powercraft2"
-version = "0.9.0"
+version = "0.10.0"
 priority = 100
 
 [compatibility]
@@ -225,3 +225,19 @@ id = "splitter"
 file = "crates/horizon-client/src/game.rs"
 name = "powercraft2_splitter"
 source = "splitter.rs"
+
+[[module]]
+id = "player_transport"
+file = "crates/horizon-client/src/game.rs"
+name = "powercraft2_player_transport"
+source = "player_transport.rs"
+
+[[injection]]
+id = "player_transport_power"
+hook = "player_tick"
+hook_version = 1
+kind = "HEAD"
+helper = "player_transport_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
