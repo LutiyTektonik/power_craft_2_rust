@@ -36,19 +36,23 @@ fn is_climbable(name: &str) -> bool {
 }
 
 fn is_drop(name: &str, solid: impl FnOnce() -> bool) -> bool {
-    !is_climbable(name)
-        && (matches!(
-            name,
-            "minecraft:air"
-                | "minecraft:cave_air"
-                | "minecraft:void_air"
-                | "minecraft:water"
-                | "minecraft:lava"
-                | "powercraft2:elevator_up"
-                | "powercraft2:elevator_down"
-                | "powercraft2:splitter"
-        ) || Belt::from_block(name).is_some()
-            || !solid())
+    if is_climbable(name) || matches!(name, PLATFORM | STAIRS) {
+        return false;
+    }
+    matches!(
+        name,
+        "minecraft:air"
+            | "minecraft:cave_air"
+            | "minecraft:void_air"
+            | "minecraft:water"
+            | "minecraft:lava"
+            | FRAME
+            | "powercraft2:elevator_up"
+            | "powercraft2:elevator_down"
+            | "powercraft2:splitter"
+    ) || is_chimney(name)
+        || Belt::from_block(name).is_some()
+        || !solid()
 }
 
 /// Rails face the exposed sides of the two-block-deep ledge; stair rail bits
