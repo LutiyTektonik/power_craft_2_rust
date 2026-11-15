@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "X  ",
+    "X  ",
+    "XXX"
+  ],
+  "key": {
+    "X": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "powercraft2:platform",
+    "count": 5
+  }
+}

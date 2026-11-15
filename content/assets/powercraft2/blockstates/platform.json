@@ -1,0 +1,292 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "floor": "true"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_1"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_2"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_3"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_4"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_5"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_5"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_6"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_6"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_7"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_7"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_7"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_8"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_9"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_9"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_10"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_10"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_11"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_11"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_11"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_12"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_12"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_13"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_13"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_13"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_14"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_14"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_14"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_15"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail"
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_15"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_15"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "railings": "mask_15"
+      },
+      "apply": {
+        "model": "powercraft2:block/platform_rail",
+        "y": 270
+      }
+    }
+  ]
+}

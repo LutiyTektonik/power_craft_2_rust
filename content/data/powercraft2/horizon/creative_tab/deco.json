@@ -1,0 +1,9 @@
+{
+  "title": "itemGroup.powercraft2.deco",
+  "icon": "powercraft2:platform",
+  "items": [
+    "powercraft2:redstone_storage",
+    "powercraft2:platform",
+    "powercraft2:stairs"
+  ]
+}

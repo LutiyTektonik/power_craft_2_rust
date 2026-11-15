@@ -1,0 +1,137 @@
+{
+  "textures": {
+    "particle": "minecraft:block/iron_block",
+    "surface": "minecraft:block/iron_block",
+    "trim": "minecraft:block/iron_block"
+  },
+  "elements": [
+    {
+      "from": [
+        15,
+        22,
+        0
+      ],
+      "to": [
+        16,
+        25,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#surface"
+        },
+        "east": {
+          "texture": "#surface"
+        },
+        "south": {
+          "texture": "#surface"
+        },
+        "west": {
+          "texture": "#surface"
+        },
+        "up": {
+          "texture": "#surface"
+        },
+        "down": {
+          "texture": "#surface"
+        }
+      }
+    },
+    {
+      "from": [
+        15,
+        14,
+        8
+      ],
+      "to": [
+        16,
+        17,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#surface"
+        },
+        "east": {
+          "texture": "#surface"
+        },
+        "south": {
+          "texture": "#surface"
+        },
+        "west": {
+          "texture": "#surface"
+        },
+        "up": {
+          "texture": "#surface"
+        },
+        "down": {
+          "texture": "#surface"
+        }
+      }
+    },
+    {
+      "from": [
+        15,
+        16,
+        0
+      ],
+      "to": [
+        16,
+        22,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#surface"
+        },
+        "east": {
+          "texture": "#surface"
+        },
+        "south": {
+          "texture": "#surface"
+        },
+        "west": {
+          "texture": "#surface"
+        },
+        "up": {
+          "texture": "#surface"
+        },
+        "down": {
+          "texture": "#surface"
+        }
+      }
+    },
+    {
+      "from": [
+        15,
+        8,
+        14
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#surface"
+        },
+        "east": {
+          "texture": "#surface"
+        },
+        "south": {
+          "texture": "#surface"
+        },
+        "west": {
+          "texture": "#surface"
+        },
+        "up": {
+          "texture": "#surface"
+        },
+        "down": {
+          "texture": "#surface"
+        }
+      }
+    }
+  ]
+}
