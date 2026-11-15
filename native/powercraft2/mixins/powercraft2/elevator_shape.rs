@@ -1,4 +1,6 @@
 fn powercraft2_elevator_shape(
+    pos: horizon_core::position::BlockPos,
+    neighbour_pos: horizon_core::position::BlockPos,
     level: &crate::game::GameLevel<'_>,
     state: horizon_world::registry::BlockStateId,
     direction: horizon_core::geometry::Direction,
@@ -7,6 +9,7 @@ fn powercraft2_elevator_shape(
 ) {
     use crate::game::powercraft2_transport::{ELEVATOR_DOWN, elevator_down_has_base};
 
+    super::powercraft2_deco::shape(level, pos, state, neighbour_pos, neighbour, new);
     if new.is_none()
         && direction == horizon_core::geometry::Direction::Down
         && level.native_state_block(state) == Some(ELEVATOR_DOWN)

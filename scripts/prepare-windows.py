@@ -106,6 +106,7 @@ def prepare(root=ROOT):
                  'ORIGINAL_MECHANICS.json', 'ORIGINAL_SOURCE_INDEX.json',
                  'BASELINE.md', 'BASELINE_DATA.json', 'COMPATIBILITY.md', 'LEGAL.md',
                  'STORAGE_TRANSFER.md', 'PUBLISHED_RELEASE.md', 'PUBLISHED_AUDIT.json',
+                 'CORE.md', 'DECO.md', 'MACHINES.md', 'MECHANICS_AUDIT.md', 'AGENTS_STATUS.md',
                  'PORTING_COMPARISON.json', 'DETECTOR.md', 'SPEEDY_VERIFICATION.json']:
         document = root / 'docs' / name
         if document.exists():

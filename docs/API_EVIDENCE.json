@@ -144,6 +144,38 @@
         "contract": "replace",
         "out": "new"
       }
+    },
+    {
+      "name": "player_tick",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_player_tick",
+      "neoforge": "PlayerTickEvent.Post",
+      "side": "server",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "listen"
+      }
+    },
+    {
+      "name": "loot_drops",
+      "version": 1,
+      "target": "horizon_client::game::native_hooks::Game<'_>::native_loot_drops",
+      "neoforge": "LivingDropsEvent / BlockDropsEvent",
+      "side": "server",
+      "cancellable": false,
+      "mod_api": {
+        "contract": "collect",
+        "out": "drops"
+      }
+    },
+    {
+      "name": "loot_function",
+      "version": 1,
+      "target": "horizon_world::loot::native_loot_function",
+      "mod_api": {
+        "contract": "collect",
+        "out": "stack"
+      }
     }
   ],
   "helpers": [
@@ -303,6 +335,30 @@
     {
       "path": "crates/horizon-client/src/game/persist.rs",
       "git_blob": "fbbceb0658a78badbe1865c8150670af25c033b5"
+    },
+    {
+      "path": "crates/horizon-client/src/motion.rs",
+      "git_blob": "b6288777c2d861121d18493e943490e943b1655c"
+    },
+    {
+      "path": "crates/horizon-client/src/game/lan_actions.rs",
+      "git_blob": "a0746bdb62834302a61f876dfacb5ebab8c827e0"
+    },
+    {
+      "path": "crates/horizon-client/src/game/block_items.rs",
+      "git_blob": "b0fa81c6731d68cf65bb5278c613906206e23ffb"
+    },
+    {
+      "path": "crates/horizon-client/src/game/commands.rs",
+      "git_blob": "94f4137c0649a98ca6a1fc1efa7433a0a85a4cd8"
+    },
+    {
+      "path": "crates/horizon-world/src/ground_support.rs",
+      "git_blob": "123332f0a55f1dea29bd4ec39857b2fe62265a0a"
+    },
+    {
+      "path": "crates/horizon-world/src/loot.rs",
+      "git_blob": "5fc5027044d57335fd0a200b826c2db99cd1eed1"
     }
   ]
 }

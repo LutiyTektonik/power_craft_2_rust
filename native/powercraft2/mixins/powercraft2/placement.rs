@@ -6,6 +6,7 @@ fn powercraft2_placement(
 ) {
     use crate::game::powercraft2_transport as transport;
 
+    super::powercraft2_deco::place(level, state, context, answer);
     if answer.is_some() {
         return;
     }

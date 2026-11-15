@@ -4,7 +4,12 @@ fn powercraft2_ejector_screen_click(
     right: bool,
     button: &mut Option<i32>,
 ) {
-    if block == super::powercraft2_transport::EJECTOR_CONVEYOR && button.is_none() {
+    if button.is_some() {
+        return;
+    }
+    if block == super::powercraft2_xp_bank::XP_BANK {
+        *button = super::powercraft2_xp_bank::hit(at, right);
+    } else if block == super::powercraft2_transport::EJECTOR_CONVEYOR {
         *button = super::powercraft2_ejector::hit(at, right);
     }
 }

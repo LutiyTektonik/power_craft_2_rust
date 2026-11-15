@@ -10,6 +10,14 @@ fn powercraft2_detector_tick(
     };
     use horizon_world::level::{EntityQuery, LevelAccess};
 
+    if entity.id == super::powercraft2_xp_bank::XP_BANK {
+        super::powercraft2_xp_bank::tick(game, pos, entity);
+        return;
+    }
+    if super::powercraft2_deco::has_block_entity(&entity.id) {
+        super::powercraft2_deco::tick(game, pos, entity);
+        return;
+    }
     if entity.id == transport::EJECTOR_CONVEYOR {
         super::powercraft2_ejector::tick(game, pos, entity);
         return;

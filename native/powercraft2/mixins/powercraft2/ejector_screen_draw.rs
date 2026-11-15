@@ -9,5 +9,7 @@ fn powercraft2_ejector_screen_draw(
         super::powercraft2_ejector::draw(game, data, batch, origin);
     } else if block == super::powercraft2_transport::SPLITTER {
         super::powercraft2_splitter::draw(game, batch, origin);
+    } else if block == super::powercraft2_xp_bank::XP_BANK {
+        super::powercraft2_xp_bank::draw(game, data, batch, origin);
     }
 }

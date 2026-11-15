@@ -7,7 +7,9 @@ fn powercraft2_separator_screen(
     if screen.is_some() {
         return;
     }
-    if block == transport::EJECTOR_CONVEYOR {
+    if block == super::powercraft2_xp_bank::XP_BANK {
+        *screen = Some(super::powercraft2_xp_bank::screen());
+    } else if block == transport::EJECTOR_CONVEYOR {
         *screen = Some(horizon_client::mod_api::NativeScreen {
             width: 204.0,
             height: 205.0,

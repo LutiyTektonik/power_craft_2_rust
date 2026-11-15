@@ -8,7 +8,7 @@ import sys
 import tomllib
 from pathlib import Path
 
-from textures import textures
+from textures import item_textures, textures
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,25 +57,25 @@ def validate(root=ROOT, sources=None):
     require(compat['horizon_mixins_revision'] == lock['mixins']['revision'], 'Mixins pin mismatch')
     require(compat['game'] == lock['horizon']['game'] == '26.3', 'game mismatch')
     require(compat['hooks'] == 381 <= lock['horizon']['hooks_available'], 'hook API mismatch')
-    module, separator, ejector, elevator, splitter = manifest['module']
-    require(separator['name'] == 'powercraft2_separator' and separator['file'] == module['file']
-            and (bundle / separator['source']).is_file(), 'missing sorting adapter')
-    require(ejector['name'] == 'powercraft2_ejector' and ejector['file'] == module['file']
-            and (bundle / ejector['source']).is_file(), 'missing ejection adapter')
-    require(elevator['name'] == 'powercraft2_elevator' and elevator['file'] == module['file']
-            and (bundle / elevator['source']).is_file(), 'missing elevator adapter')
-    require(splitter['name'] == 'powercraft2_splitter' and splitter['file'] == module['file']
-            and (bundle / splitter['source']).is_file(), 'missing splitter adapter')
-    require(module['name'] == 'powercraft2_transport', 'foreign module name')
-    require(module['file'] == 'crates/horizon-client/src/game.rs', 'unexpected destination')
-    require((bundle / module['source']).resolve() == (root / cargo['lib']['path']).resolve(), 'runtime source drift')
+    modules = manifest['module']
+    expected_modules = {'transport', 'separator', 'ejector', 'elevator', 'splitter',
+                        'player_transport', 'deco', 'xp_bank', 'xp_bank_logic'}
+    require(len(modules) == len(expected_modules)
+            and {module['id'] for module in modules} == expected_modules, 'unexpected native modules')
+    for module in modules:
+        require(module['name'] == f"powercraft2_{module['id']}"
+                and module['file'] == 'crates/horizon-client/src/game.rs'
+                and (bundle / module['source']).is_file(), 'invalid native module')
+    transport = next(module for module in modules if module['id'] == 'transport')
+    require((bundle / transport['source']).resolve() == (root / cargo['lib']['path']).resolve(),
+            'runtime source drift')
     evidence = read_json(root / 'docs/API_EVIDENCE.json')
     require(evidence['horizon_revision'] == revision, 'stale API evidence')
     available = {h['name']: h for h in evidence['hooks']}
     expected = {'tick', 'entity_tick_listened', 'entity_tick_post', 'state_for_placement',
                 'block_entity', 'block_entity_ticks', 'block_entity_tick', 'block_signal', 'is_signal_source',
                 'block_entity_container', 'screen', 'menu_slot_rules', 'menu_button',
-                'screen_click', 'screen_draw', 'update_shape'}
+                'screen_click', 'screen_draw', 'update_shape', 'player_tick', 'loot_function', 'loot_drops'}
     require({i['hook'] for i in manifest['injection']} == expected, 'unexpected hooks')
     require(len(manifest['injection']) == len(expected), 'duplicate hook')
     for injection in manifest['injection']:
@@ -197,7 +197,7 @@ def validate(root=ROOT, sources=None):
         loot = read_json(content / f'data/powercraft2/loot_table/blocks/{name}.json')
         require(loot['pools'][0]['entries'][0]['name'] == identifier, 'wrong elevator drop')
     tab = read_json(content / 'data/powercraft2/horizon/creative_tab/transport.json')
-    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor', 'powercraft2:elevator_up', 'powercraft2:elevator_down', 'powercraft2:splitter'], 'transport tab mismatch')
+    require(tab['items'] == ['powercraft2:conveyor', 'powercraft2:speedy_conveyor', 'powercraft2:brake_conveyor', 'powercraft2:detector_conveyor', 'powercraft2:redirector_conveyor', 'powercraft2:separator_conveyor', 'powercraft2:ejector_conveyor', 'powercraft2:elevator_up', 'powercraft2:elevator_down', 'powercraft2:splitter', 'powercraft2:sticky_boots'], 'transport tab mismatch')
     menu = read_json(content / 'data/powercraft2/horizon/menu/separator_conveyor.json')
     require(menu == {'slots': 18}, 'separator menu must have two banks of nine slots')
     menu = read_json(content / 'data/powercraft2/horizon/menu/ejector_conveyor.json')
@@ -224,6 +224,21 @@ def validate(root=ROOT, sources=None):
     require(loot['pools'][0]['entries'][0]['name'] == 'powercraft2:splitter', 'wrong splitter drop')
     menu = read_json(content / 'data/powercraft2/horizon/menu/splitter.json')
     require(menu == {'slots': 30}, 'splitter menu must have six banks of five slots')
+    boots = read_json(content / 'data/powercraft2/horizon/item/sticky_boots.json')
+    require(boots == {'template': 'minecraft:iron_boots'}, 'sticky boots equipment mismatch')
+    recipe = read_json(content / 'data/powercraft2/recipe/sticky_boots.json')
+    require(recipe['pattern'] == ['B', 'S', 'B']
+            and recipe['key'] == {'B': 'minecraft:iron_boots', 'S': 'minecraft:slime_ball'}
+            and recipe['result'] == {'id': 'powercraft2:sticky_boots', 'count': 1},
+            'published sticky boots recipe mismatch')
+    boots_model = 'powercraft2:item/sticky_boots'
+    item = read_json(content / 'assets/powercraft2/items/sticky_boots.json')
+    model = read_json(content / 'assets/powercraft2/models/item/sticky_boots.json')
+    require(item['model']['model'] == boots_model and model['textures']['layer0'] == boots_model,
+            'sticky boots model mismatch')
+    for name, data in item_textures().items():
+        require((content / 'assets/powercraft2/textures/item' / name).read_bytes() == data,
+                'item texture provenance mismatch')
     provenance = read_json(root / 'docs/TOOL_PROVENANCE.json')
     require(provenance['revision'] == lock['mods']['revision'], 'tools pin mismatch')
     for file in provenance['files']:

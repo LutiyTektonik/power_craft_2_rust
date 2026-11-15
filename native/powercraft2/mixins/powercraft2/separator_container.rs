@@ -7,6 +7,10 @@ fn powercraft2_separator_container(
     if container.is_some() {
         return;
     }
+    if block == super::powercraft2_xp_bank::XP_BANK {
+        *container = Some(super::powercraft2_xp_bank::container());
+        return;
+    }
     let slots = match block {
         transport::SEPARATOR_CONVEYOR => transport::SEPARATOR_SLOTS,
         transport::EJECTOR_CONVEYOR => 1,
