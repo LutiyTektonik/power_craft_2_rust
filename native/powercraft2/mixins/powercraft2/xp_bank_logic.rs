@@ -143,31 +143,37 @@ mod tests {
     }
 
     #[test]
-    fn deposits_points_held_and_round_trips() {
-        let deposit = transfer(20, 16, 4.0 / 42.0, Action::DepositAll).unwrap();
+    fn deposits_points_held_and_round_trips() -> Result<(), &'static str> {
+        let deposit =
+            transfer(20, 16, 4.0 / 42.0, Action::DepositAll).ok_or("expected an XP transfer")?;
         assert_eq!(
             (deposit.level, deposit.progress, deposit.balance),
             (0, 0.0, 376)
         );
         assert_eq!(deposit.player_delta, -356);
-        let withdraw = transfer(356, 0, 0.0, Action::WithdrawAll).unwrap();
+        let withdraw =
+            transfer(356, 0, 0.0, Action::WithdrawAll).ok_or("expected an XP transfer")?;
         assert_eq!((withdraw.level, withdraw.balance), (16, 0));
         assert_eq!(withdraw.progress, 4.0 / 42.0);
         assert_eq!(withdraw.player_delta, 356);
+        Ok(())
     }
 
     #[test]
-    fn single_level_uses_progress_or_the_previous_bar() {
-        let partial = transfer(0, 2, 2.0 / 11.0, Action::DepositLevel).unwrap();
+    fn single_level_uses_progress_or_the_previous_bar() -> Result<(), &'static str> {
+        let partial =
+            transfer(0, 2, 2.0 / 11.0, Action::DepositLevel).ok_or("expected an XP transfer")?;
         assert_eq!(
             (partial.level, partial.progress, partial.balance),
             (2, 0.0, 2)
         );
-        let full = transfer(0, 2, 0.0, Action::DepositLevel).unwrap();
+        let full = transfer(0, 2, 0.0, Action::DepositLevel).ok_or("expected an XP transfer")?;
         assert_eq!((full.level, full.progress, full.balance), (1, 0.0, 9));
-        let enough = transfer(15, 2, 2.0 / 11.0, Action::WithdrawLevel).unwrap();
+        let enough =
+            transfer(15, 2, 2.0 / 11.0, Action::WithdrawLevel).ok_or("expected an XP transfer")?;
         assert_eq!((enough.level, enough.progress, enough.balance), (3, 0.0, 6));
-        let insufficient = transfer(2, 2, 2.0 / 11.0, Action::WithdrawLevel).unwrap();
+        let insufficient =
+            transfer(2, 2, 2.0 / 11.0, Action::WithdrawLevel).ok_or("expected an XP transfer")?;
         assert_eq!(
             (
                 insufficient.level,
@@ -176,20 +182,24 @@ mod tests {
             ),
             (2, 4.0 / 11.0, 0)
         );
+        Ok(())
     }
 
     #[test]
-    fn bounds_each_transfer_and_rejects_invalid_input() {
-        let deposit = transfer(CAPACITY - 1, 1, 0.0, Action::DepositAll).unwrap();
+    fn bounds_each_transfer_and_rejects_invalid_input() -> Result<(), &'static str> {
+        let deposit =
+            transfer(CAPACITY - 1, 1, 0.0, Action::DepositAll).ok_or("expected an XP transfer")?;
         assert_eq!((deposit.balance, deposit.player_delta), (CAPACITY, -1));
         assert!(transfer(CAPACITY, 1, 0.0, Action::DepositAll).is_none());
         assert!(transfer(0, 0, 0.0, Action::DepositLevel).is_none());
         assert!(transfer(0, 1, f32::NAN, Action::DepositAll).is_none());
         assert!(transfer(2, i32::MAX, 0.0, Action::WithdrawAll).is_none());
         assert!(Action::try_from(-1).is_err());
-        let large = transfer(CAPACITY, 0, 0.0, Action::WithdrawAll).unwrap();
+        let large =
+            transfer(CAPACITY, 0, 0.0, Action::WithdrawAll).ok_or("expected an XP transfer")?;
         assert_eq!(large.player_delta, CAPACITY);
         assert!(transfer(1, large.level, large.progress, Action::WithdrawAll).is_none());
+        Ok(())
     }
 
     #[test]
